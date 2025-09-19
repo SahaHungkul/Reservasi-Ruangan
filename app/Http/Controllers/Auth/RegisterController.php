@@ -19,7 +19,10 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role' => 'karyawan',
         ]);
+
+        $user->assignRole('karyawan');
 
         return response()->json([
             'message' => 'Registrasi Berhasil',
