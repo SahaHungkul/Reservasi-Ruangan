@@ -20,13 +20,13 @@ class AdminSeeder extends Seeder
         ]);
 
         $admin = User::firstOrCreate(
-            ['email' => 'admin@example.com'], // unik berdasarkan email
+            ['email' => 'admin1@example.com'], // unik berdasarkan email
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password123'),
                 'role' => 'admin', // simpan ke kolom users.role
             ],
-            
+
         );
 
         // assign role ke Spatie
