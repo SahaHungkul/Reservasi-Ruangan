@@ -17,7 +17,7 @@ class Rooms extends Model
 
     public function reservations()
     {
-        return $this->hasMany(Reservations::class);
+        return $this->hasMany(Reservations::class,'room_id');
     }
 
     public function fixedSchedules()
