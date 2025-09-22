@@ -73,7 +73,7 @@ class RoomController extends Controller
     public function destroy(Rooms $room)
     {
         $hasActiveReservation = $room->reservations()
-            ->where('status', 'Used')
+            ->where('status', 'active')
             ->exists();
 
         if ($hasActiveReservation) {

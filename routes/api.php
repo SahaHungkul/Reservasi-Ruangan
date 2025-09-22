@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\FixedScheduleController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoomController;
-use App\Models\FixedSchedule;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -18,14 +17,15 @@ Route::get('/user', function (Request $request) {
 Route::post('/auth/login', [LoginController::class, 'login']);
 Route::post('/auth/register', [RegisterController::class, 'register']);
 
-Route::apiResource('rooms', RoomController::class);
 
 
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
     Route::get('auth/me', [ProfileController::class, 'profile']);
 
-    Route::get('reservations', [ReservationController::class, 'index']);
+    Route::apiResource('rooms', RoomController::class);
+    
+    Route::get('reservations', [ReservationController::class, 'index'])->name('index');
     Route::post('reservations', [ReservationController::class, 'store']);
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
     Route::put('reservations/{id}', [ReservationController::class, 'update']);

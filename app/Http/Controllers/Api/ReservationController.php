@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReservationRequest;
 use App\Http\Resources\ReservationResource;
+use App\Models\FixedSchedule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Reservations;
@@ -26,6 +27,30 @@ class ReservationController extends Controller
      */
     public function store(ReservationRequest $request)
     {
+        $data = $request->validated();
+
+        $day   = \Carbon\Carbon::parse($data['start_time'])->format('l');
+        $start = \Carbon\Carbon::parse($data['start_time'])->format('H:i');
+        $end   = \Carbon\Carbon::parse($data['end_time'])->format('H:i');
+
+        $isBlocked = FixedSchedule::where('room_id', $data['room_id'])
+            ->where('day', $day)
+            ->where('status', 'active')
+            ->where(function ($query) use ($start, $end) {
+                $query->whereBetween('start_time', [$start, $end])
+                    ->orWhereBetween('end_time', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_time', '<=', $start)
+                            ->where('end_time', '>=', $end);
+                    });
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return response()->json([
+                'message' => 'Reservasi ditolak karena bentrok dengan jadwal tetap.'
+            ], 422);
+        }
         $validated = $request->validated();
         $reservation = Reservations::create([
             'room_id' => $validated['room_id'],
