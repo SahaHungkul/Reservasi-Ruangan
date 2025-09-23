@@ -33,6 +33,7 @@ class ReservationController extends Controller
         $start = \Carbon\Carbon::parse($data['start_time'])->format('H:i');
         $end   = \Carbon\Carbon::parse($data['end_time'])->format('H:i');
 
+        // ✅ Cek Fixed Schedule
         $isBlocked = FixedSchedule::where('room_id', $data['room_id'])
             ->where('day', $day)
             ->where('status', 'active')
@@ -51,18 +52,39 @@ class ReservationController extends Controller
                 'message' => 'Reservasi ditolak karena bentrok dengan jadwal tetap.'
             ], 422);
         }
-        $validated = $request->validated();
+
+        // ✅ Cek bentrok dengan reservasi approved
+        $hasConflict = Reservations::where('room_id', $data['room_id'])
+            ->where('status', 'approved')
+            ->where(function ($query) use ($data) {
+                $query->whereBetween('start_time', [$data['start_time'], $data['end_time']])
+                    ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
+                    ->orWhere(function ($q) use ($data) {
+                        $q->where('start_time', '<=', $data['start_time'])
+                            ->where('end_time', '>=', $data['end_time']);
+                    });
+            })
+            ->exists();
+
+        if ($hasConflict) {
+            return response()->json([
+                'message' => 'Reservasi ditolak karena sudah ada reservasi lain.'
+            ], 422);
+        }
+
+        // ✅ Simpan reservasi baru
         $reservation = Reservations::create([
-            'room_id' => $validated['room_id'],
-            'user_id' => Auth::user()->id,
-            'date'       => $validated['date'],
-            'start_time' => $validated['start_time'],
-            'end_time'   => $validated['end_time'],
+            'room_id'    => $data['room_id'],
+            'user_id'    => Auth::id(),
+            'date'       => $data['date'],
+            'start_time' => $data['start_time'],
+            'end_time'   => $data['end_time'],
             'status'     => 'pending',
         ]);
 
         return new ReservationResource($reservation);
     }
+
 
     /**
      * Display the specified resource.

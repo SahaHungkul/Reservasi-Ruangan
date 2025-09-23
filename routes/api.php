@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\ReservationApprovalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -23,14 +24,21 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
     Route::get('auth/me', [ProfileController::class, 'profile']);
 
-    Route::apiResource('rooms', RoomController::class);
-    
+    Route::get('rooms', [RoomController::class,'index']);
+    Route::post('rooms', [RoomController::class,'store']);
+    Route::get('rooms/{id}', [RoomController::class,'show']);
+    Route::put('rooms/{id}', [RoomController::class,'update']);
+    Route::delete('rooms/{id}', [RoomController::class,'destroy']);
+
+
     Route::get('reservations', [ReservationController::class, 'index'])->name('index');
     Route::post('reservations', [ReservationController::class, 'store']);
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
     Route::put('reservations/{id}', [ReservationController::class, 'update']);
     Route::delete('reservations/{id}', [ReservationController::class, 'destroy']);
-    Route::patch('reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+
+    Route::patch('reservations/{id}/approve', [ReservationApprovalController::class,'approve']);
+    Route::patch('reservations/{id}/reject', [ReservationApprovalController::class,'reject']);
 
     Route::get('fixed-schedules',[FixedScheduleController::class,'index']);
     Route::post('fixed-schedules',[FixedScheduleController::class,'store']);
