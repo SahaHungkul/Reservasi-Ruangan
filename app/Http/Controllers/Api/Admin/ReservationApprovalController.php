@@ -16,7 +16,7 @@ class ReservationApprovalController extends Controller
         $reservation->update(['status' => 'approved']);
         $room = Rooms::find($reservation->room_id);
         if($room){
-            $room->update(['status' => 'inactive']);
+            $room->update(['status' => 'active']);
         }
 
         return new ReservationApprovalResource($reservation);
@@ -30,7 +30,7 @@ class ReservationApprovalController extends Controller
 
         $room = Rooms::find($reservation->room_id);
         if($room){
-            $room->update(['status'=> 'active']);
+            $room->update(['status'=> 'inactive']);
         }
 
         return new ReservationApprovalResource($reservation);

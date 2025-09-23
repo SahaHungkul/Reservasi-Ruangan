@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\FixedScheduleController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\UserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -23,6 +24,11 @@ Route::post('/auth/register', [RegisterController::class, 'register']);
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
     Route::get('auth/me', [ProfileController::class, 'profile']);
+    Route::put('auth/me',[ProfileController::class,'update']);
+
+    Route::get('users',[UserController::class, 'index']);
+    Route::get('users/{id}',[UserController::class,'show']);
+    Route::delete('users/{id}',[UserController::class,'destroy']);
 
     Route::get('rooms', [RoomController::class,'index']);
     Route::post('rooms', [RoomController::class,'store']);

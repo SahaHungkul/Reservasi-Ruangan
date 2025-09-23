@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class RoomRequest extends FormRequest
+class UpdateProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +23,13 @@ class RoomRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'capacity' => 'required|integer|min:1',
-            // 'location' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'in:inactive,active'
+            'name' => 'sometimes|required|string|max:255',
+            'email' => [
+                'sometimes',
+                'email',
+                Rule::unique('users')->ignore(request()->route('id')),
+            ],
+            'password' => 'sometimes|string|min:8|confirmed',
         ];
     }
 }
