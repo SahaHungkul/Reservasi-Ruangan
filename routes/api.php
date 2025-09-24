@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ReservationApprovalController;
+use App\Http\Controllers\Api\ReservastionCancelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -30,11 +31,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{id}',[UserController::class,'show']);
     Route::delete('users/{id}',[UserController::class,'destroy']);
 
-    Route::get('rooms', [RoomController::class,'index']);
-    Route::post('rooms', [RoomController::class,'store']);
-    Route::get('rooms/{id}', [RoomController::class,'show']);
-    Route::put('rooms/{id}', [RoomController::class,'update']);
-    Route::delete('rooms/{id}', [RoomController::class,'destroy']);
+    Route::get('room', [RoomController::class,'index']);
+    Route::post('room', [RoomController::class,'store']);
+    Route::get('room/{id}', [RoomController::class,'show']);
+    Route::put('room/{id}', [RoomController::class,'update']);
+    Route::delete('room/{id}', [RoomController::class,'destroy']);
 
 
     Route::get('reservations', [ReservationController::class, 'index'])->name('index');
@@ -45,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::patch('reservations/{id}/approve', [ReservationApprovalController::class,'approve']);
     Route::patch('reservations/{id}/reject', [ReservationApprovalController::class,'reject']);
+    Route::patch('reservations/{id}/cancel',[ReservastionCancelController::class,'cancel']);
 
     Route::get('fixed-schedules',[FixedScheduleController::class,'index']);
     Route::post('fixed-schedules',[FixedScheduleController::class,'store']);

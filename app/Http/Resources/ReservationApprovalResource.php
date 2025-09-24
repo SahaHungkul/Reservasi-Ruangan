@@ -15,13 +15,14 @@ class ReservationApprovalResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'        => $this->id,
-            'room_id'   => $this->room_id,
-            'user_id'   => $this->user_id,
-            'status'    => $this->status,
-            'start_time'=> $this->start_time,
-            'end_time'  => $this->end_time,
-            'updated_at'=> $this->updated_at,
+            'id'          => $this->id,
+            'room_id'     => $this->room_id,
+            'user_id'     => $this->user_id,
+            'status'      => $this->when($this->status === 'rejected', $this->reason),
+            'reason'      => $this->reason,
+            'start_time'  => $this->start_time,
+            'end_time'    => $this->end_time,
+            'updated_at'  => $this->updated_at,
         ];
     }
 }

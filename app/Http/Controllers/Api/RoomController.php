@@ -33,7 +33,7 @@ class RoomController extends Controller
 
     /**
      * Display the specified resource.
-     */
+     */ 
     public function show($id)
     {
         $room = Rooms::find($id);

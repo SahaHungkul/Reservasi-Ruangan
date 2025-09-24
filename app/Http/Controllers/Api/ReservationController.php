@@ -35,8 +35,7 @@ class ReservationController extends Controller
 
         // ✅ Cek Fixed Schedule
         $isBlocked = FixedSchedule::where('room_id', $data['room_id'])
-            ->where('day', $day)
-            ->where('status', 'active')
+            ->where('day_of_week', $day)
             ->where(function ($query) use ($start, $end) {
                 $query->whereBetween('start_time', [$start, $end])
                     ->orWhereBetween('end_time', [$start, $end])
@@ -79,7 +78,7 @@ class ReservationController extends Controller
             'date'       => $data['date'],
             'start_time' => $data['start_time'],
             'end_time'   => $data['end_time'],
-            'status'     => 'pending',
+            // 'status'     => 'pending',
         ]);
 
         return new ReservationResource($reservation);
@@ -142,11 +141,11 @@ class ReservationController extends Controller
         ]);
 
         if ($request->status === 'approved') {
-            $reservation->room->update(['status' => 'used']);
+            $reservation->room->update(['status' => 'active']);
         }
 
         if (in_array($request->status, ['canceled', 'rejected'])) {
-            $reservation->room->update(['status' => 'available']);
+            $reservation->room->update(['status' => 'inactive']);
         }
 
         return new ReservationResource($reservation);

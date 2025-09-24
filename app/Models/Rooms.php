@@ -15,6 +15,10 @@ class Rooms extends Model
         'status'
     ];
 
+    protected $attributes = [
+        'status' => 'inactive',
+    ];
+
     public function reservations()
     {
         return $this->hasMany(Reservations::class,'room_id');

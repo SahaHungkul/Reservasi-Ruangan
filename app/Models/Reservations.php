@@ -18,6 +18,9 @@ class Reservations extends Model
         'status',
         'reason'
     ];
+    protected $attributes = [
+        'status' => 'pending',
+    ];
 
     public function user()
     {

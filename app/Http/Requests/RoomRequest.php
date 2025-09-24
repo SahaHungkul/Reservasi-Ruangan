@@ -26,7 +26,7 @@ class RoomRequest extends FormRequest
             'capacity' => 'required|integer|min:1',
             // 'location' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'in:inactive,active'
+            // 'status' => 'in:inactive,active'
         ];
     }
 }

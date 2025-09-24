@@ -27,7 +27,7 @@ class ReservationRequest extends FormRequest
             'date'       => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time'   => 'required|date_format:H:i|after:start_time',
-            'status'     => 'in:pending,approved,rejected,used,canceled',
+            // 'status'     => 'in:pending,approved,rejected,used,canceled',
         ];
     }
 
