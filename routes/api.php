@@ -20,9 +20,9 @@ Route::get('/user', function (Request $request) {
 Route::post('/auth/login', [LoginController::class, 'login']);
 Route::post('/auth/register', [RegisterController::class, 'register']);
 
-Route::patch('reservations/{id}/approve', [ReservationApprovalController::class,'approve']);
-Route::patch('reservations/{id}/reject', [ReservationApprovalController::class,'reject']);
-Route::patch('reservations/{id}/cancel',[ReservastionCancelController::class,'cancel']);
+Route::patch('reservations/{id}/approve', [ReservationController::class,'approve']);
+Route::patch('reservations/{id}/reject', [ReservationController::class,'reject']);
+Route::patch('reservations/{id}/cancel',[ReservationController::class,'cancel']);
 
 
 Route::middleware('auth:api')->group(function () {

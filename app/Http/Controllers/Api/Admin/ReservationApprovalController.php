@@ -12,7 +12,7 @@ use App\Mail\ReservationNotificationMail;
 
 class ReservationApprovalController extends Controller
 {
-    public function approve($id)
+     public function approve($id)
     {
         $reservation = Reservations::findOrFail($id);
 

@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReservationRequest;
+use App\Http\Resources\ReservationApprovalResource;
 use App\Http\Resources\ReservationResource;
 use App\Models\FixedSchedule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Reservations;
 use App\Mail\ReservationNotificationMail;
+use App\Models\Rooms;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -118,36 +120,101 @@ class ReservationController extends Controller
         return new ReservationResource($reservation);
     }
 
-    public function updateStatus(Request $request, $id)
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:approved,rejected,canceled,used',
+    //     ], [
+    //         'status.required' => 'Status wajib dipilih.',
+    //         'status.in'       => 'Status tidak valid.',
+    //     ]);
+
+    //     $reservation = Reservations::findOrFail($id);
+
+    //     if (!$request->user() || $request->user()->role !== 'admin') {
+    //         return response()->json([
+    //             'message' => 'Unauthorized'
+    //         ], 403);
+    //     }
+
+
+    //     $reservation->update([
+    //         'status' => $request->status,
+    //     ]);
+
+    //     if ($request->status === 'approved') {
+    //         $reservation->room->update(['status' => 'active']);
+    //     }
+
+    //     if (in_array($request->status, ['canceled', 'rejected'])) {
+    //         $reservation->room->update(['status' => 'inactive']);
+    //     }
+
+    //     return new ReservationResource($reservation);
+    // }
+
+    public function approve($id)
+    {
+        $reservation = Reservations::findOrFail($id);
+
+        $reservation->update([
+            'status' => 'approved',
+            'reason' => null,
+        ]);
+
+        Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
+        $room = Rooms::find($reservation->room_id);
+        if ($room) {
+            $room->update(['status' => 'active']);
+        }
+
+        return new ReservationApprovalResource($reservation);
+    }
+
+    public function reject(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,rejected,canceled,used',
+            'reason' => 'required|string|max:255',
         ], [
-            'status.required' => 'Status wajib dipilih.',
-            'status.in'       => 'Status tidak valid.',
+            'reason.required' => 'Alasan penolakan wajib diisi.',
         ]);
 
         $reservation = Reservations::findOrFail($id);
 
-        if (!$request->user() || $request->user()->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
-
-
         $reservation->update([
-            'status' => $request->status,
+            'status' => 'rejected',
+            'reason' => $request->reason,
         ]);
 
-        if ($request->status === 'approved') {
-            $reservation->room->update(['status' => 'active']);
+        // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'rejected'));
+
+        $room = Rooms::find($reservation->room_id);
+        if ($room) {
+            $room->update(['status' => 'inactive',]);
         }
 
-        if (in_array($request->status, ['canceled', 'rejected'])) {
-            $reservation->room->update(['status' => 'inactive']);
+        return new ReservationApprovalResource($reservation);
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        $reservation = Reservations::findOrFail($id);
+
+        if (!in_array($reservation->status, ['pending', 'approved'])) {
+            return response()->json([
+                'message' => 'Reservasi tidak bisa dibatalkan.',
+            ], 422);
         }
 
-        return new ReservationResource($reservation);
+        $reservation->update([
+            'status' => 'canceled',
+            'reason' => $request->reason,
+        ]);
+
+        return response()->json($reservation);
     }
 }
