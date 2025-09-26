@@ -7,6 +7,8 @@ use App\Http\Resources\ReservationApprovalResource;
 use App\Models\Reservations;
 use App\Models\Rooms;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationNotificationMail;
 
 class ReservationApprovalController extends Controller
 {
@@ -18,6 +20,8 @@ class ReservationApprovalController extends Controller
             'status' => 'approved',
             'reason' => null,
         ]);
+
+        Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
         $room = Rooms::find($reservation->room_id);
         if ($room) {
             $room->update(['status' => 'active']);
@@ -40,6 +44,8 @@ class ReservationApprovalController extends Controller
             'status' => 'rejected',
             'reason' => $request->reason,
         ]);
+
+        // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'rejected'));
 
         $room = Rooms::find($reservation->room_id);
         if ($room) {

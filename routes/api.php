@@ -20,6 +20,9 @@ Route::get('/user', function (Request $request) {
 Route::post('/auth/login', [LoginController::class, 'login']);
 Route::post('/auth/register', [RegisterController::class, 'register']);
 
+Route::patch('reservations/{id}/approve', [ReservationApprovalController::class,'approve']);
+Route::patch('reservations/{id}/reject', [ReservationApprovalController::class,'reject']);
+Route::patch('reservations/{id}/cancel',[ReservastionCancelController::class,'cancel']);
 
 
 Route::middleware('auth:api')->group(function () {
@@ -41,12 +44,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('reservations', [ReservationController::class, 'index'])->name('index');
     Route::post('reservations', [ReservationController::class, 'store']);
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
-    Route::put('reservations/{id}', [ReservationController::class, 'update']);
-    Route::delete('reservations/{id}', [ReservationController::class, 'destroy']);
-
-    Route::patch('reservations/{id}/approve', [ReservationApprovalController::class,'approve']);
-    Route::patch('reservations/{id}/reject', [ReservationApprovalController::class,'reject']);
-    Route::patch('reservations/{id}/cancel',[ReservastionCancelController::class,'cancel']);
 
     Route::get('fixed-schedules',[FixedScheduleController::class,'index']);
     Route::post('fixed-schedules',[FixedScheduleController::class,'store']);
