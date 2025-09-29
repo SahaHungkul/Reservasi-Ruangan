@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class ReservationRequest extends FormRequest
 {
@@ -52,9 +54,9 @@ class ReservationRequest extends FormRequest
             }
 
             try {
-                $start = Carbon::parse($data['start_time']);
-                $end   = Carbon::parse($data['end_time']);
-                $today = now();
+                $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
+                $end   = Carbon::parse($data['date'] . ' ' . $data['end_time']);
+                $today = today();
             } catch (\Exception $e) {
                 $validator->errors()->add('start_time', 'Format waktu tidak valid.');
                 return;
@@ -74,7 +76,8 @@ class ReservationRequest extends FormRequest
                 $validator->errors()->add('start_time', 'Tanggal reservasi tidak boleh di masa lalu.');
             }
 
-            if ($start->greaterThan($today->copy()->addDays(30)->endOfDay())) {
+            $limit = now()->addDays(30)->endOfDay();
+            if ($start->gt($limit)) {
                 $validator->errors()->add('start_time', 'Reservasi hanya bisa dibuat maksimal 30 hari ke depan.');
             }
         });
