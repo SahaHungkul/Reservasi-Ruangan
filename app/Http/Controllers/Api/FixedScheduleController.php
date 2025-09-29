@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FixedScheduleRequest;
+use App\Http\Requests\UpdateScheduleRequest;
 use App\Http\Resources\FixedScheduleResource;
 use App\Models\FixedSchedule;
 
@@ -25,6 +26,9 @@ class FixedScheduleController extends Controller
     public function store(FixedScheduleRequest $request)
     {
         $fixedSchedule = FixedSchedule::create($request->validated());
+        if ($fixedSchedule->room) {
+            $fixedSchedule->room->update(['status' => 'active']);
+        }
         return new FixedScheduleResource($fixedSchedule->load('room'));
     }
 
@@ -35,13 +39,13 @@ class FixedScheduleController extends Controller
     {
         $fixedSchedule = FixedSchedule::with('room')->findOrFail($id);
 
-        return new FixedScheduleResource($fixedSchedule); 
+        return new FixedScheduleResource($fixedSchedule);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(FixedScheduleRequest $request, FixedSchedule $fixedSchedule)
+    public function update(UpdateScheduleRequest $request, FixedSchedule $fixedSchedule)
     {
         $fixedSchedule->update($request->validated());
         return new FixedScheduleResource($fixedSchedule->load('room'));

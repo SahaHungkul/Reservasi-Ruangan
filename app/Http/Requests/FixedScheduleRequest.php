@@ -26,6 +26,7 @@ class FixedScheduleRequest extends FormRequest
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'description' => 'nullable|string|max:255',
         ];
     }
 

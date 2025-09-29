@@ -17,17 +17,17 @@ class RoomSeeder extends Seeder
             [
                 'name' => 'Ruang Rapat Umum',
                 'capacity' => '20',
-                'description' => '',
+                'description' => null,
             ],
             [
                 'name' => 'Ruang Rapat',
                 'capacity' => '20',
-                'description' => '',
+                'description' => null,
             ],
             [
                 'name' => 'Ruang Rapat',
                 'capacity' => '20',
-                'description' => '',
+                'description' => null,
             ],
         ];
 
