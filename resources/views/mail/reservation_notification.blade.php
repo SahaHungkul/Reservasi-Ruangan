@@ -7,36 +7,35 @@
 </head>
 
 <body>
-    <h2>Reservasi Baru</h2>
-    <p>Room: {{ $reservation->room->name }}</p>
-    <p>User: {{ $reservation->user->name }}</p>
-    <p>Status: Pending</p>
+    <h2>Halo,</h2>
 
-    {{-- Tombol Approve --}}
-    <form action="{{ route('reservations.approve', $reservation->id) }}" method="POST" style="display:inline;">
-        @csrf
-        <button type="submit" class="btn btn-success">Approve</button>
-    </form>
+    @if ($type === 'pending')
+        <p>Ada reservasi baru dari <strong>{{ $reservation->user->name }}</strong>.</p>
+        <p>Ruangan: {{ $reservation->room->name }}</p>
+        <p>Tanggal: {{ $reservation->date }}</p>
+        <p>Jam: {{ $reservation->start_time }} - {{ $reservation->end_time }}</p>
+        <p>Status: <strong>Pending</strong></p>
+    @elseif ($type === 'approved')
+        <p>Reservasi Anda telah <strong>Disetujui</strong>.</p>
+        <p>Ruangan: {{ $reservation->room->name }}</p>
+        <p>Tanggal: {{ $reservation->date }}</p>
+        <p>Jam: {{ $reservation->start_time }} - {{ $reservation->end_time }}</p>
+    @elseif ($type === 'rejected')
+        <p>Reservasi Anda <strong>Ditolak</strong>.</p>
+        <p>Alasan: {{ $reservation->reason }}</p>
+        <p>Ruangan: {{ $reservation->room->name }}</p>
+        <p>Tanggal: {{ $reservation->date }}</p>
+        <p>Jam: {{ $reservation->start_time }} - {{ $reservation->end_time }}</p>
+    @elseif ($type === 'canceled')
+        <p>Karyawan telah cancel reservasi</p>
+        <p>Alasan:{{ $reservation->reason }} </p>
+        <p>Ruangan:{{ $reservation->room->name }} </p>
+        <p>Tanggal: {{ $reservation->date }}</p>
+        <p>Jam: {{ $reservation->start_time }} - {{ $reservation->end_time }}</p>
+    @endif
 
-    {{-- Tombol untuk menampilkan form Reject --}}
-    <button onclick="document.getElementById('reject-form').style.display='block'" class="btn btn-danger">
-        Reject
-    </button>
-
-    {{-- Form Reject (awal hidden) --}}
-    <form id="reject-form" action="{{ route('reservations.reject', $reservation->id) }}" method="POST"
-        style="display:none; margin-top:10px;">
-        @csrf
-        <label for="reason">Alasan Penolakan:</label>
-        <input type="text" name="reason" id="reason" required class="form-control"
-            placeholder="Tuliskan alasan..." />
-        <br>
-        <button type="submit" class="btn btn-danger">Kirim Penolakan</button>
-        <button type="button" onclick="document.getElementById('reject-form').style.display='none'"
-            class="btn btn-secondary">
-            Batal
-        </button>
-    </form>
+    <br>
+    <p>Terima kasih.</p>
 </body>
 
 </html>

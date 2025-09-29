@@ -32,12 +32,13 @@ class ReservationNotificationMail extends Mailable
     {
         $subject = match($this->type) {
             'pending' => 'Reservasi Baru Menunggu Persetujuan',
-            'Approved' => 'Reservasi telah Disetujui',
-            'Rejected' => 'Reservasi Ditolak',
+            'approved' => 'Reservasi telah Disetujui',
+            'rejected' => 'Reservasi Ditolak',
+            'canceled' => 'Reservasi Dibatalkan',
             default => 'informasi Reservasi'
         };
         return new Envelope(
-            subject: 'Reservatio Notification Mail',
+            subject: 'Reservation Notification Mail',
         );
     }
 

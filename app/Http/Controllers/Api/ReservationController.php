@@ -95,7 +95,7 @@ class ReservationController extends Controller
                 // 'status'     => 'pending',
             ]);
 
-            // Mail::to('admin@example.com')->send(new ReservationNotificationMail($reservation, 'pending'));
+            Mail::to('admin@example.com')->send(new ReservationNotificationMail($reservation, 'pending'));
             DB::commit();
             return new ReservationResource($reservation);
         } catch (\Exception $e) {
@@ -139,7 +139,8 @@ class ReservationController extends Controller
                 'reason' => $request->input('reason'),
             ]);
 
-            // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
+            Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
+
             $room = Rooms::find($reservation->room_id);
             if ($room) {
                 $room->update(['status' => 'active']);
@@ -187,7 +188,7 @@ class ReservationController extends Controller
             'reason' => $request->reason,
         ]);
 
-        // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'rejected'));
+        Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'rejected'));
 
         $room = Rooms::find($reservation->room_id);
         if ($room) {
@@ -215,6 +216,9 @@ class ReservationController extends Controller
             'status' => 'canceled',
             'reason' => $request->reason,
         ]);
+        Mail::to('admin@example.com')->send(
+        new ReservationNotificationMail($reservation, 'canceled')
+    );
 
         return new ReservationApprovalResource($reservation);
     }
