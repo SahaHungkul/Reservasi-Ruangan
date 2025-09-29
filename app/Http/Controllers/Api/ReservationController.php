@@ -109,7 +109,6 @@ class ReservationController extends Controller
         }
     }
 
-
     /**
      * Display the specified resource.
      */
@@ -120,49 +119,25 @@ class ReservationController extends Controller
         return new ReservationResource($reservation);
     }
 
-    // public function updateStatus(Request $request, $id)
-    // {
-    //     $request->validate([
-    //         'status' => 'required|in:approved,rejected,canceled,used',
-    //     ], [
-    //         'status.required' => 'Status wajib dipilih.',
-    //         'status.in'       => 'Status tidak valid.',
-    //     ]);
-
-    //     $reservation = Reservations::findOrFail($id);
-
-    //     if (!$request->user() || $request->user()->role !== 'admin') {
-    //         return response()->json([
-    //             'message' => 'Unauthorized'
-    //         ], 403);
-    //     }
-
-
-    //     $reservation->update([
-    //         'status' => $request->status,
-    //     ]);
-
-    //     if ($request->status === 'approved') {
-    //         $reservation->room->update(['status' => 'active']);
-    //     }
-
-    //     if (in_array($request->status, ['canceled', 'rejected'])) {
-    //         $reservation->room->update(['status' => 'inactive']);
-    //     }
-
-    //     return new ReservationResource($reservation);
-    // }
-
-    public function approve($id)
+    public function approve(Request $request,$id)
     {
+        $request->validate([
+            'reason' => 'nullable|string|max:255',
+        ]);
         $reservation = Reservations::findOrFail($id);
+
+        if (in_array($reservation->status, ['canceled', 'rejected'])) {
+        return response()->json([
+            'message' => 'Reservasi yang sudah dibatalkan atau ditolak tidak bisa di-approve lagi.'
+        ], 422);
+    }
 
         $reservation->update([
             'status' => 'approved',
-            'reason' => null,
+            'reason' => $request->input('reason'),
         ]);
 
-        Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
+        // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
         $room = Rooms::find($reservation->room_id);
         if ($room) {
             $room->update(['status' => 'active']);
@@ -174,9 +149,10 @@ class ReservationController extends Controller
     public function reject(Request $request, $id)
     {
         $request->validate([
-            'reason' => 'required|string|max:255',
-        ], [
-            'reason.required' => 'Alasan penolakan wajib diisi.',
+            'reason' => 'nullable|string|max:255',
+
+        // [
+        //     'reason.required' => 'Alasan penolakan wajib diisi.',
         ]);
 
         $reservation = Reservations::findOrFail($id);
@@ -199,7 +175,7 @@ class ReservationController extends Controller
     public function cancel(Request $request, $id)
     {
         $request->validate([
-            'reason' => 'required|string|max:255',
+            'reason' => 'nullable|string|max:255',
         ]);
 
         $reservation = Reservations::findOrFail($id);
@@ -215,6 +191,6 @@ class ReservationController extends Controller
             'reason' => $request->reason,
         ]);
 
-        return response()->json($reservation);
+        return new ReservationApprovalResource($reservation);
     }
 }

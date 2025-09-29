@@ -34,20 +34,25 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{id}',[UserController::class,'show']);
     Route::delete('users/{id}',[UserController::class,'destroy']);
 
+    Route::middleware('role_or_permission:admin|manage rooms')->group(function(){
+        Route::post('room', [RoomController::class,'store']);
+        Route::put('room/{id}', [RoomController::class,'update']);
+        Route::delete('room/{id}', [RoomController::class,'destroy']);
+    });
+
     Route::get('room', [RoomController::class,'index']);
-    Route::post('room', [RoomController::class,'store']);
     Route::get('room/{id}', [RoomController::class,'show']);
-    Route::put('room/{id}', [RoomController::class,'update']);
-    Route::delete('room/{id}', [RoomController::class,'destroy']);
 
 
     Route::get('reservations', [ReservationController::class, 'index'])->name('index');
     Route::post('reservations', [ReservationController::class, 'store']);
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
 
+    Route::middleware('role_or_permission:admin|manage.schedule')->group(function(){
+        Route::post('fixed-schedules',[FixedScheduleController::class,'store']);
+        Route::put('fixed-schedules/{id}',[FixedScheduleController::class,'update']);
+        Route::delete('fixed-schedules/{id}',[FixedScheduleController::class,'destroy']);
+    });
     Route::get('fixed-schedules',[FixedScheduleController::class,'index']);
-    Route::post('fixed-schedules',[FixedScheduleController::class,'store']);
     Route::get('fixed-schedules/{id}',[FixedScheduleController::class,'show']);
-    Route::put('fixed-schedules/{id}',[FixedScheduleController::class,'update']);
-    Route::delete('fixed-schedules/{id}',[FixedScheduleController::class,'destroy']);
 });
