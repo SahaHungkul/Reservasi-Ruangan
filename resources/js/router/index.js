@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useUserStore } from "@/stores/user";
 
 import AdminLayout from "../layouts/AdminLayout.vue";
 // contoh komponen (pastikan file App.vue atau lainnya sudah ada)
 
+import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
 import Home from "../pages/Home.vue";
 import Dashboard from "../pages/admin/Dashboard.vue";
@@ -20,18 +22,31 @@ const routes = [
     },
     {
         path: "/login",
-        name: "LoginPage",
+        name: "login",
         component: Login,
+    },
+    {
+        path: "/register",
+        name: "register",
+        component: Register,
     },
     {
         path: "/admin",
         component: AdminLayout,
         children: [
             { path: "dashboard", name: "AdminDashboard", component: Dashboard },
-            { path: 'rooms', name: 'RoomAdmin', component:RoomAdmin},
-            { path: 'reservations',name: 'ReservationAdmin', component:ReservationAdmin},
-            { path: 'fixed-schedules',name: 'FixedSchedulesAdmin', component:FixedSchedulesAdmin},
-            { path: 'rooms/create', name:'CreateRoom', component:CreateRoom}
+            { path: "rooms", name: "RoomAdmin", component: RoomAdmin },
+            {
+                path: "reservations",
+                name: "ReservationAdmin",
+                component: ReservationAdmin,
+            },
+            {
+                path: "fixed-schedules",
+                name: "FixedSchedulesAdmin",
+                component: FixedSchedulesAdmin,
+            },
+            { path: "rooms/create", name: "CreateRoom", component: CreateRoom },
         ],
     },
 ];
@@ -42,11 +57,20 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const role = localStorage.getItem('role')
-  if (to.meta.role && to.meta.role !== role) {
-    return next('/login')
-  }
-  next()
-})
+    const userStore = useUserStore();
+    const role = localStorage.getItem("role");
+
+    // cek kalau butuh login
+    if (to.meta.requiresAuth && !userStore.token) {
+        return next({ name: "login" });
+    }
+
+    // cek kalau butuh role tertentu
+    if (to.meta.role && to.meta.role !== role) {
+        return next({ name: "login" });
+    }
+
+    next();
+});
 
 export default router;

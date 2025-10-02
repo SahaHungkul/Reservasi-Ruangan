@@ -24,7 +24,14 @@ class RoomController extends Controller
      */
     public function store(RoomRequest $request)
     {
-        $room = Rooms::create($request->validated());
+        $data = $request->validated();
+
+        $room = Rooms::create([
+            'name' => $data['name'],
+            'capacity' => $data['capacity'],
+            'description' => $data['description'] ?? null,
+            'status' => false,
+        ]);
         return response()->json([
             'Message' => 'Room Created Successfully',
             'data' => new RoomResource($room),
@@ -33,7 +40,7 @@ class RoomController extends Controller
 
     /**
      * Display the specified resource.
-     */ 
+     */
     public function show($id)
     {
         $room = Rooms::find($id);
