@@ -1,20 +1,40 @@
 <script setup>
-import AdminNavbar from '@/components/Navbars/AdminNavbar.vue';
-import Sidebar from "@/components/Sidebar/Sidebar.vue";
-import HeaderStats from "@/components/Headers/HeaderStats.vue";
-import FooterAdmin from "@/components/Footers/FooterAdmin.vue";
+import LogoutButton from '@/components/LogoutButton.vue';
 </script>
 
 <template>
-  <div>
-    <sidebar />
-    <div class="relative md:ml-64 bg-blueGray-100">
-      <admin-navbar />
-      <header-stats />
-      <div class="px-4 md:px-10 mx-auto w-full -m-24">
-        <router-view />
-        <footer-admin />
-      </div>
+    <div class="flex min-h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md">
+            <div class="p-4 text-xl font-bold border-b">Admin Panel</div>
+            <nav class="p-4 space-y-2">
+                <RouterLink to="/admin/dashboard" class="block px-3 py-2 rounded hover:bg-gray-200">
+                    Dashboard
+                </RouterLink>
+                <RouterLink to="/admin/reservations" class="block px-3 py-2 rounded hover:bg-gray-200">
+                    Reservasi
+                </RouterLink>
+                <RouterLink to="/admin/rooms" class="block px-3 py-2 rounded hover:bg-gray-200">
+                    Rooms
+                </RouterLink>
+                <RouterLink to="/admin/rooms" class="block px-3 py-2 rounded hover:bg-gray-200">
+                    Fixed Schedules
+                </RouterLink>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Navbar -->
+            <header class="bg-white shadow p-4 flex justify-between items-center">
+                <h1 class="text-lg font-semibold">Admin Area</h1>
+                <LogoutButton/>
+            </header>
+
+            <!-- Halaman -->
+            <main class="p-6 flex-1">
+                <RouterView />
+            </main>
+        </div>
     </div>
-  </div>
 </template>
