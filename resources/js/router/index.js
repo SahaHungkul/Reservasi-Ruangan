@@ -7,14 +7,17 @@ import AdminLayout from "../layouts/AdminLayout.vue";
 import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
 import Home from "../pages/Home.vue";
-import Dashboard from "../pages/admin/Dashboard.vue";
+import Dashboard from "@/pages/admin/Dashboard.vue";
 
 import RoomAdmin from "@/pages/admin/rooms/Room.vue";
 import CreateRoom from "@/pages/admin/rooms/CreateRoom.vue";
 import EditRoom from "@/pages/admin/rooms/Edit.vue";
 
+import FixedSchedulesAdmin from "@/pages/admin/fixed-schedules/FixedSchedule.vue";
+import FixedScheduleCreate from "@/pages/admin/fixed-schedules/Create.vue";
+import FixedScheduleEdit from "@/pages/admin/fixed-schedules/FixedScheduleEdit.vue";
+
 import ReservationAdmin from "@/pages/admin/Reservation.vue";
-import FixedSchedulesAdmin from "@/pages/admin/FixedSchedule.vue";
 
 const routes = [
     {
@@ -43,11 +46,9 @@ const routes = [
                 name: "ReservationAdmin",
                 component: ReservationAdmin,
             },
-            {
-                path: "fixed-schedules",
-                name: "FixedSchedulesAdmin",
-                component: FixedSchedulesAdmin,
-            },
+            { path: "fixed-schedules", name: "FixedSchedulesAdmin", component: FixedSchedulesAdmin,},
+            { path: "fixed-schedules/create", name:"fixed-schedules.create",component:FixedScheduleCreate},
+            { path: "fixed-schedules/:id/edit", name:"fixed-schedules.edit",component:FixedScheduleEdit},
             { path: "rooms/create", name: "CreateRoom", component: CreateRoom },
             { path: "rooms/:id/edit", name: "rooms.edit", component: EditRoom},
         ],
