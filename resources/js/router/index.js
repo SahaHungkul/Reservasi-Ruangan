@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "@/stores/user";
 
 import AdminLayout from "../layouts/AdminLayout.vue";
+import KaryawanLayout from "@/layouts/KaryawanLayout.vue";
 // contoh komponen (pastikan file App.vue atau lainnya sudah ada)
 
 import Register from "@/pages/Register.vue";
@@ -18,6 +19,8 @@ import FixedScheduleCreate from "@/pages/admin/fixed-schedules/Create.vue";
 import FixedScheduleEdit from "@/pages/admin/fixed-schedules/FixedScheduleEdit.vue";
 
 import ReservationAdmin from "@/pages/admin/Reservation.vue";
+
+import About from "@/pages/About.vue";
 
 const routes = [
     {
@@ -39,20 +42,77 @@ const routes = [
         path: "/admin",
         component: AdminLayout,
         children: [
-            { path: "dashboard", name: "AdminDashboard", component: Dashboard },
-            { path: "rooms", name: "RoomAdmin", component: RoomAdmin },
+            {
+                path: "dashboard",
+                name: "AdminDashboard",
+                component: Dashboard,
+            },
+            {
+                path: "rooms",
+                name: "RoomAdmin",
+                component: RoomAdmin,
+            },
             {
                 path: "reservations",
                 name: "ReservationAdmin",
                 component: ReservationAdmin,
             },
-            { path: "fixed-schedules", name: "FixedSchedulesAdmin", component: FixedSchedulesAdmin,},
-            { path: "fixed-schedules/create", name:"fixed-schedules.create",component:FixedScheduleCreate},
-            { path: "fixed-schedules/:id/edit", name:"fixed-schedules.edit",component:FixedScheduleEdit},
-            { path: "rooms/create", name: "CreateRoom", component: CreateRoom },
-            { path: "rooms/:id/edit", name: "rooms.edit", component: EditRoom},
+            {
+                path: "fixed-schedules",
+                name: "FixedSchedulesAdmin",
+                component: FixedSchedulesAdmin,
+            },
+            {
+                path: "fixed-schedules/create",
+                name: "fixed-schedules.create",
+                component: FixedScheduleCreate,
+            },
+            {
+                path: "fixed-schedules/:id/edit",
+                name: "fixed-schedules.edit",
+                component: FixedScheduleEdit,
+            },
+            {
+                path: "rooms/create",
+                name: "CreateRoom",
+                component: CreateRoom,
+            },
+            {
+                path: "rooms/:id/edit",
+                name: "rooms.edit",
+                component: EditRoom,
+            },
         ],
+
     },
+    {
+    path: "/karyawan",
+    component: KaryawanLayout,
+    children: [
+    //   {
+    //     path: "fixed-schedules",
+    //     name: "fixed-schedules.index",
+    //     component: FixedScheduleIndex,
+    //   },
+    //   {
+    //     path: "fixed-schedules/create",
+    //     name: "fixed-schedules.create",
+    //     component: FixedScheduleCreate,
+    //   },
+    //   {
+    //     path: "fixed-schedules/:id/edit",
+    //     name: "fixed-schedules.edit",
+    //     component: FixedScheduleEdit,
+    //     props: true,
+    //   },
+      // nanti bisa tambahin rooms, reservations dsb.
+      {
+        path: "about",
+        name: "about",
+        component: About,
+      }
+    ],
+  },
 ];
 
 const router = createRouter({
