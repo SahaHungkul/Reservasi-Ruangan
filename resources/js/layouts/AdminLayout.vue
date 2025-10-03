@@ -17,7 +17,7 @@ import LogoutButton from '@/components/LogoutButton.vue';
                 <RouterLink to="/admin/rooms" class="block px-3 py-2 rounded hover:bg-gray-200">
                     Rooms
                 </RouterLink>
-                <RouterLink to="/admin/rooms" class="block px-3 py-2 rounded hover:bg-gray-200">
+                <RouterLink to="/admin/fixed-schedules" class="block px-3 py-2 rounded hover:bg-gray-200">
                     Fixed Schedules
                 </RouterLink>
             </nav>

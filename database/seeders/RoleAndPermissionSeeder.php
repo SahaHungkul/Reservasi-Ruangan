@@ -17,6 +17,7 @@ class RoleAndPermissionSeeder extends Seeder
         //List
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         $permissions =[
+            'manage users',
             'manage rooms',
             'manage schedule',
             'approve reservation',

@@ -11,6 +11,8 @@ import Dashboard from "../pages/admin/Dashboard.vue";
 
 import RoomAdmin from "@/pages/admin/rooms/Room.vue";
 import CreateRoom from "@/pages/admin/rooms/CreateRoom.vue";
+import EditRoom from "@/pages/admin/rooms/Edit.vue";
+
 import ReservationAdmin from "@/pages/admin/Reservation.vue";
 import FixedSchedulesAdmin from "@/pages/admin/FixedSchedule.vue";
 
@@ -47,6 +49,7 @@ const routes = [
                 component: FixedSchedulesAdmin,
             },
             { path: "rooms/create", name: "CreateRoom", component: CreateRoom },
+            { path: "rooms/:id/edit", name: "rooms.edit", component: EditRoom},
         ],
     },
 ];
