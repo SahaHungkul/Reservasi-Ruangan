@@ -108,4 +108,10 @@ return [
     ],
 
     'extensions' => [],
+    'api' => [
+        'routes' => [
+            'prefix' => 'api',
+            'middleware' => ['api'],
+        ],
+    ],
 ];

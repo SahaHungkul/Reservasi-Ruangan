@@ -4,7 +4,8 @@ use App\Mail\ReservationNotificationMail;
 use App\Models\Reservations;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/{any}', 'app')->where('any', '.*');
+Route::view('/{any}', 'app')->where('any', '^(?!api/|docs/).*');
+
 
 
 Route::get('/preview-mail/{type}/{id}', function ($type, $id) {
