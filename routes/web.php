@@ -6,8 +6,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/{any}', 'app')->where('any', '^(?!api/|docs/).*');
 
-
-
 Route::get('/preview-mail/{type}/{id}', function ($type, $id) {
     $reservation = Reservations::findOrFail($id);
 

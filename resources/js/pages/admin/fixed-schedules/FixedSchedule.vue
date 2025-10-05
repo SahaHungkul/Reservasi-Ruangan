@@ -13,7 +13,7 @@ const error = ref(null);
 
 onMounted(async () => {
     try {
-        const res = await axios.get("/api/fixed-schedules")
+        const res = await axios.get("/fixed-schedules")
         fixedSchedule.value = res.data.data;
     } catch (err) {
         error.value = "Gagal memuat data"

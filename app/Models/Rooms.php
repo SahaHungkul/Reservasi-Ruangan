@@ -15,13 +15,39 @@ class Rooms extends Model
         'status'
     ];
 
+    protected $casts = [
+        'capacity' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected $attributes = [
         'status' => 'inactive',
     ];
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
+    }
+
+    // Di Model Room.php
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($room) {
+            if ($room->isActive()) {
+                throw new \Exception('Ruangan aktif tidak dapat dihapus');
+            }
+        });
+    }
 
     public function reservations()
     {
-        return $this->hasMany(Reservations::class,'room_id');
+        return $this->hasMany(Reservations::class, 'room_id');
     }
 
     public function fixedSchedules()

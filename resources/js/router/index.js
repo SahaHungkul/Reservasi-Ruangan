@@ -10,7 +10,7 @@ import Login from "@/pages/Login.vue";
 import Home from "../pages/Home.vue";
 import Dashboard from "@/pages/admin/Dashboard.vue";
 
-import RoomAdmin from "@/pages/admin/rooms/Room.vue";
+import IndexRoomAdmin from "@/pages/admin/rooms/Index.vue";
 import CreateRoom from "@/pages/admin/rooms/CreateRoom.vue";
 import EditRoom from "@/pages/admin/rooms/Edit.vue";
 
@@ -49,8 +49,8 @@ const routes = [
             },
             {
                 path: "rooms",
-                name: "RoomAdmin",
-                component: RoomAdmin,
+                name: "IndexRoomAdmin",
+                component: IndexRoomAdmin,
             },
             {
                 path: "reservations",
@@ -79,7 +79,7 @@ const routes = [
             },
             {
                 path: "rooms/:id/edit",
-                name: "rooms.edit",
+                name: "admin.rooms.edit",
                 component: EditRoom,
             },
         ],
