@@ -20,6 +20,13 @@ class Reservations extends Model
         'status',
         'reason'
     ];
+
+    protected $casts = [
+        'date' => 'date',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
+    ];
+    
     protected $attributes = [
         'status' => 'pending',
     ];

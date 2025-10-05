@@ -3,8 +3,11 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class FixedScheduleRequest extends FormRequest
+class StoreFixedScheduleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +26,7 @@ class FixedScheduleRequest extends FormRequest
     {
         return [
             'room_id' => 'required|exists:rooms,id',
-            'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'day_of_week' => ['required', Rule::in(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])],
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'description' => 'nullable|string|max:255',
@@ -41,5 +44,16 @@ class FixedScheduleRequest extends FormRequest
             'end_time.required'   => 'Jam selesai wajib diisi.',
             'end_time.after'      => 'Jam selesai harus lebih besar dari jam mulai.',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422)
+        );
     }
 }
