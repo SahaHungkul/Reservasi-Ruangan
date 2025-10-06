@@ -14,7 +14,7 @@ class Reservations extends Model
         'user_id',
         'room_id',
         'date',
-        'day',
+        'day_of_week',
         'start_time',
         'end_time',
         'status',
@@ -23,22 +23,43 @@ class Reservations extends Model
 
     protected $casts = [
         'date' => 'date',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
     ];
-    
+
     protected $attributes = [
         'status' => 'pending',
     ];
-    protected static function booted()
+    protected static function boot()
     {
+        parent::boot();
+
         static::creating(function ($reservation) {
-            if (!empty($reservation->date) && !empty($reservation->start_time)) {
-                $datetime = Carbon::parse($reservation->date . ' ' . $reservation->start_time);
-                $reservation->day = $datetime->translatedFormat('l');
-                // ->locale('id')
+            // Auto set day_of_week dari date
+            if ($reservation->date) {
+                $reservation->day_of_week = strtolower(Carbon::parse($reservation->date)->format('l'));
             }
         });
+
+        static::updating(function ($reservation) {
+            // Auto update day_of_week jika date berubah
+            if ($reservation->isDirty('date')) {
+                $reservation->day_of_week = strtolower(Carbon::parse($reservation->date)->format('l'));
+            }
+        });
+    }
+
+    public function getDayLabelAttribute()
+    {
+        $days = [
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+            'sunday' => 'Minggu',
+        ];
+
+        return $days[$this->day_of_week] ?? $this->day_of_week;
     }
 
     public function getStartTimeAttribute()

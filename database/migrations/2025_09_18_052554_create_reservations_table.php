@@ -16,9 +16,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('room_id')->constrained('rooms')->onDelete('cascade');
             $table->date('date');
+            $table->enum('day_of_week', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])->comment('Auto-filled from date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('status',['pending','approved','rejected','canceled'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rejected', 'canceled'])->default('pending');
             $table->text('reason')->nullable();
             $table->timestamps();
         });

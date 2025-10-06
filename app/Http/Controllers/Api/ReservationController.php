@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ReservationRequest;
+use App\Models\FixedSchedule;
+use App\Models\Reservations;
+use App\Models\Rooms;
+use App\Http\Requests\StoreReservationRequest;
 use App\Http\Resources\ReservationApprovalResource;
 use App\Http\Resources\ReservationResource;
-use App\Models\FixedSchedule;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Models\Reservations;
+use Illuminate\Support\Facades\Auth;
 use App\Mail\ReservationNotificationMail;
-use App\Models\Rooms;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 
 class ReservationController extends Controller
 {
@@ -24,87 +25,113 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        $reservations = Reservations::with('room')->latest()->get();
+        try {
+            $reservations = Reservations::with(['user', 'room'])
+                ->orderBy('date', 'desc')
+                ->orderBy('start_time', 'desc')
+                ->get();
 
-        return ReservationResource::collection($reservations);
+            return response()->json([
+                'success' => true,
+                'data' => ReservationResource::collection($reservations)
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Gagal mengambil data reservasi: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil data reservasi.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ReservationRequest $request)
+    public function store(StoreReservationRequest $request): JsonResponse
     {
-        $data = $request->validated();
-
-        $date = Carbon::parse($data['date']);
-        $day  = $date->locale('id')->dayName;
-
-        $start = Carbon::parse($data['start_time'])->format('H:i');
-        $end   = Carbon::parse($data['end_time'])->format('H:i');
-
-        DB::beginTransaction();
-
         try {
+            $validated = $request->validated();
 
-            // ✅ Cek Fixed Schedule
-            $isBlocked = FixedSchedule::where('room_id', $data['room_id'])
-                ->where('day_of_week', $day)
-                ->where(function ($query) use ($start, $end) {
-                    $query->whereBetween('start_time', [$start, $end])
-                        ->orWhereBetween('end_time', [$start, $end])
-                        ->orWhere(function ($q) use ($start, $end) {
-                            $q->where('start_time', '<=', $start)
-                                ->where('end_time', '>=', $end);
-                        });
-                })
-                ->exists();
+            // Get day of week from date
+            $date = Carbon::parse($validated['date']);
+            $dayOfWeek = strtolower($date->format('l'));
 
-            if ($isBlocked) {
+            // Cek room ada
+            $room = Rooms::find($validated['room_id']);
+            if (!$room) {
                 return response()->json([
-                    'message' => 'Reservasi ditolak karena bentrok dengan jadwal tetap.'
-                ], 422);
+                    'success' => false,
+                    'message' => 'Ruangan tidak ditemukan'
+                ], 404);
             }
 
-            // ✅ Cek bentrok dengan reservasi approved
-            $hasConflict = Reservations::where('room_id', $data['room_id'])
+            // CEK 1: Fixed Schedule Conflict (Auto Reject)
+            $fixedConflict = FixedSchedule::where('room_id', $validated['room_id'])
+                ->where('day_of_week', $dayOfWeek)
+                ->whereRaw('? < end_time AND ? > start_time', [
+                    $validated['start_time'],
+                    $validated['end_time']
+                ])
+                ->first();
+
+            if ($fixedConflict) {
+                // Auto rejected karena bentrok dengan jadwal tetap
+                $reservation = Reservations::create([
+                    'user_id' => Auth::id(),
+                    'room_id' => $validated['room_id'],
+                    'date' => $validated['date'],
+                    'start_time' => $validated['start_time'],
+                    'end_time' => $validated['end_time'],
+                    'status' => 'rejected',
+                    'reason' => "Otomatis ditolak: Bentrok dengan jadwal tetap ({$fixedConflict->description}) pada hari {$fixedConflict->day_label} pukul " . date('H:i', strtotime($fixedConflict->start_time)) . "-" . date('H:i', strtotime($fixedConflict->end_time))
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Reservasi otomatis ditolak karena bentrok dengan jadwal tetap',
+                    'data' => new ReservationResource($reservation->load(['user', 'room']))
+                ], 400);
+            }
+
+            // CEK 2: Reservation Conflict dengan yang sudah approved
+            $reservationConflict = Reservations::where('room_id', $validated['room_id'])
+                ->where('date', $validated['date'])
                 ->where('status', 'approved')
-                ->where(function ($query) use ($data) {
-                    $query->whereBetween('start_time', [$data['start_time'], $data['end_time']])
-                        ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
-                        ->orWhere(function ($q) use ($data) {
-                            $q->where('start_time', '<=', $data['start_time'])
-                                ->where('end_time', '>=', $data['end_time']);
-                        });
-                })
+                ->whereRaw('? < end_time AND ? > start_time', [
+                    $validated['start_time'],
+                    $validated['end_time']
+                ])
                 ->exists();
 
-            if ($hasConflict) {
+            if ($reservationConflict) {
                 return response()->json([
-                    'message' => 'Reservasi ditolak karena sudah ada reservasi lain.'
-                ], 422);
+                    'success' => false,
+                    'message' => 'Ruangan sudah direservasi pada waktu tersebut'
+                ], 400);
             }
 
-            // ✅ Simpan reservasi baru
+            // Buat reservation dengan status pending
+            // day_of_week akan auto-fill dari boot method
             $reservation = Reservations::create([
-                'room_id'    => $data['room_id'],
-                'user_id'    => Auth::id(),
-                'date'       => $data['date'],
-                'day' => Carbon::parse($data['start_time'])->format('l'),
-                'start_time' => $data['start_time'],
-                'end_time'   => $data['end_time'],
-                // 'status'     => 'pending',
+                'user_id' => Auth::id(),
+                'room_id' => $validated['room_id'],
+                'date' => $validated['date'],
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'status' => 'pending'
             ]);
 
-            // Mail::to('admin@example.com')->send(new ReservationNotificationMail($reservation, 'pending'));
-            DB::commit();
-            return new ReservationResource($reservation);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Gagal membuat reservasi: ' . $e->getMessage());
-
             return response()->json([
-                'message' => 'Terjadi kesalahan, reservasi gagal dibuat.',
-                'error'   => $e->getMessage()
+                'success' => true,
+                'message' => 'Reservasi berhasil dibuat dan menunggu persetujuan',
+                'data' => new ReservationResource($reservation->load(['user', 'room']))
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat reservasi',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
