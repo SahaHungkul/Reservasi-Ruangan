@@ -57,13 +57,13 @@ class RoomController extends Controller
                 'Success' => true,
                 'Message' => 'Room Created Successfully',
                 'Data' => new RoomResource($room),
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'Success' => false,
                 'Message' => 'Room Creation Failed: ',
                 'Error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
 
@@ -117,11 +117,11 @@ class RoomController extends Controller
                 ], 400);
             }
 
-            if ($room->reservations()->where('status', 'active')->exists()) {
-                return response()->json([
-                    'message' => 'Ruangan tidak bisa edit karena masih ada reservasi aktif.'
-                ], 400);
-            }
+            // if ($room->reservations()->where('status', 'active')->exists()) {
+            //     return response()->json([
+            //         'message' => 'Ruangan tidak bisa edit karena masih ada reservasi aktif.'
+            //     ], 400);
+            // }
 
             $room->update($request->validated());
 

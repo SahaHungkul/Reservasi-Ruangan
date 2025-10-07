@@ -18,7 +18,7 @@ if (token) {
 }
 
 // Request interceptor
-axios.interceptors.request.use(
+axiosInstance.interceptors.request.use(
     (config) => {
         // Tambahkan token jika menggunakan authentication
         const authToken = localStorage.getItem("token");

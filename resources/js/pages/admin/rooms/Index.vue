@@ -1,7 +1,3 @@
-<!-- ===============================================
-FILE: resources/js/pages/rooms/Index.vue
-=============================================== -->
-
 <template>
     <div class="max-w-6xl mx-auto px-4 py-8">
 

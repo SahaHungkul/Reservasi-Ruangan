@@ -33,6 +33,6 @@ class RoomService
         $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        return $query->paginate($request->get('per_page', 10));
+        return $query->paginate($request->get('per_page', 50));
     }
 }
