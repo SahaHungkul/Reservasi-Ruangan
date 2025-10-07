@@ -3,20 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Http\Resources\RoomResource;
 use App\Models\Rooms;
+use App\Services\RoomService;
 
 class RoomController extends Controller
 {
+    protected $roomService;
+
+    public function __construct(RoomService $roomService)
+    {
+        $this->roomService = $roomService;
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $rooms = Rooms::orderBy('created_at', 'desc')->get();
+            $rooms = $this->roomService->filterRooms($request);
 
             return response()->json([
                 'success' => true,
@@ -184,5 +192,4 @@ class RoomController extends Controller
             ], 500);
         }
     }
-
 }

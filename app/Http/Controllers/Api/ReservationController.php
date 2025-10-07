@@ -12,6 +12,7 @@ use App\Http\Resources\ReservationResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\ReservationNotificationMail;
+use App\Services\ReservationService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,16 +21,19 @@ use Illuminate\Http\JsonResponse;
 
 class ReservationController extends Controller
 {
+    protected $reservationService;
+
+    public function __construct(ReservationService $reservationService)
+    {
+        $this->reservationService = $reservationService;
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $reservations = Reservations::with(['user', 'room'])
-                ->orderBy('date', 'desc')
-                ->orderBy('start_time', 'desc')
-                ->get();
+            $reservations = $this->reservationService->filterReservations($request);
 
             return response()->json([
                 'success' => true,

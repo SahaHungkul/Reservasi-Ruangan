@@ -19,7 +19,7 @@ class ReservationResource extends JsonResource
             'room'       => new RoomResource($this->whenLoaded('room')),
             'user_id'    => $this->user_id,
             'date'       => $this->date,
-            'day'        => $this->day,
+            'day_of_week'        => $this->day_of_week,
             'start_time' => $this->start_time,
             'end_time'   => $this->end_time,
             'status'     => $this->status,

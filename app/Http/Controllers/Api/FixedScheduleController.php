@@ -8,20 +8,25 @@ use App\Http\Requests\UpdateFixedScheduleRequest;
 use App\Http\Resources\FixedScheduleResource;
 use App\Models\FixedSchedule;
 use App\Models\Rooms;
+use App\Services\FixedScheduleService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class FixedScheduleController extends Controller
 {
+    protected $fixedScheduleService;
+
+    public function __construct(FixedScheduleService $fixedScheduleService)
+    {
+        $this->fixedScheduleService = $fixedScheduleService;
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $schedules = FixedSchedule::with('room')
-                ->orderBy('day_of_week')
-                ->orderBy('start_time')
-                ->get();
+            $schedules = $this->fixedScheduleService->filterFixedSchedules($request);
 
             return response()->json([
                 'status' => true,
@@ -205,7 +210,7 @@ class FixedScheduleController extends Controller
             DB::commit();
 
             $schedule->refresh();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal rutin berhasil diperbarui',
