@@ -54,15 +54,15 @@ class RoomController extends Controller
             ]);
 
             return response()->json([
-                'Success' => true,
-                'Message' => 'Room Created Successfully',
-                'Data' => new RoomResource($room),
+                'success' => true,
+                'message' => 'Room Created Successfully',
+                'data' => new RoomResource($room),
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'Success' => false,
-                'Message' => 'Room Creation Failed: ',
-                'Error' => $e->getMessage(),
+                'success' => false,
+                'message' => 'Room Creation Failed: ',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -83,14 +83,14 @@ class RoomController extends Controller
             }
 
             return response()->json([
-                'Success' => true,
-                'Data' => new RoomResource($room),
+                'success' => true,
+                'data' => new RoomResource($room),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'Success' => false,
-                'Message' => 'Failed to retrieve room: ',
-                'Error' => $e->getMessage(),
+                'success' => false,
+                'message' => 'Failed to retrieve room: ',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -126,15 +126,15 @@ class RoomController extends Controller
             $room->update($request->validated());
 
             return response()->json([
-                'Success' => true,
-                'Message' => 'Room updated successfully',
-                'Data' => new RoomResource($room),
+                'success' => true,
+                'message' => 'Room updated successfully',
+                'data' => new RoomResource($room),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'Success' => false,
-                'Message' => 'Room Update Failed: ',
-                'Error' => $e->getMessage(),
+                'success' => false,
+                'message' => 'Room Update Failed: ',
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -162,8 +162,8 @@ class RoomController extends Controller
             $room->delete();
 
             return response()->json([
-                'Success' => true,
-                'Message' => 'Room deleted successfully'
+                'success' => true,
+                'message' => 'Room deleted successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([

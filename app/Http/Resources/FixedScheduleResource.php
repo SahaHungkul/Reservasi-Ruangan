@@ -12,7 +12,7 @@ class FixedScheduleResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-     public function toArray(Request $request): array
+    public function toArray(Request $request): array
     {
         return [
             'id'         => $this->id,
@@ -21,10 +21,12 @@ class FixedScheduleResource extends JsonResource
                 'name' => $this->room->name,
             ],
             'day_of_week' => $this->day_of_week,
+            'day_label' => $this->day_label,
             'start_time'  => $this->start_time,
             'end_time'    => $this->end_time,
             'description' => $this->description,
             'created_at'  => $this->created_at->toDateTimeString(),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];
     }
 }
