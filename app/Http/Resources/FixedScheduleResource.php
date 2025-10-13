@@ -15,17 +15,17 @@ class FixedScheduleResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'room'       => [
-                'id'   => $this->room->id,
+            'id' => $this->id,
+            'room' => [
+                'id' => $this->room->id,
                 'name' => $this->room->name,
             ],
             'day_of_week' => $this->day_of_week,
             'day_label' => $this->day_label,
-            'start_time'  => $this->start_time,
-            'end_time'    => $this->end_time,
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
             'description' => $this->description,
-            'created_at'  => $this->created_at->toDateTimeString(),
+            'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];
     }

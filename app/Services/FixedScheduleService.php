@@ -27,7 +27,7 @@ class FixedScheduleService
         }
 
         $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortOrder = $request->get('sort_order', 'asc');
 
         $allowedSorts = ['created_at', 'day_of_week', 'start_time', 'end_time'];
         if (!in_array($sortBy, $allowedSorts)) {
@@ -39,6 +39,12 @@ class FixedScheduleService
 
         $perPage = $request->get('per_page', 10);
 
-        return $query->paginate($perPage);
+        if($perPage === 'all'){
+            $fixedSchedules = $query->get();
+        } else {
+            $fixedSchedules = $query->paginate((int) $perPage);
+        }
+
+        return $fixedSchedules;
     }
 }

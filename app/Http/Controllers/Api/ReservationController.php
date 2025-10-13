@@ -143,11 +143,30 @@ class ReservationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(string $id)
     {
-        $reservation = Reservations::with('room')->findOrFail($id);
+        $user = Auth::user();
 
-        return new ReservationResource($reservation);
+        $reservation = Reservations::with('room')->find($id);
+
+        if (!$reservation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservasi tidak ditemukan'
+            ], 404);
+        }
+
+        if ($user->hasRole('karyawan') && $reservation->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk melihat reservasi ini'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => new ReservationResource($reservation)
+        ], 200);
     }
 
     public function approve(Request $request, $id)
@@ -170,8 +189,6 @@ class ReservationController extends Controller
                 'reason' => $request->input('reason'),
             ]);
 
-            // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
-
             $room = Rooms::find($reservation->room_id);
             if ($room) {
                 $room->update(['status' => 'active']);
@@ -193,7 +210,13 @@ class ReservationController extends Controller
                     'reason' => 'Ditolak otomatis karena jadwal sudah diambil reservasi lain.',
                 ]);
 
-            return new ReservationApprovalResource($reservation);
+            // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
+
+            return response()->json([
+                'success' => true,
+                'mesage' => 'Reservasi berhasil di-approve.',
+                'data' => new ReservationApprovalResource($reservation),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -207,9 +230,6 @@ class ReservationController extends Controller
     {
         $request->validate([
             'reason' => 'required|string|max:255',
-
-            // [
-            //     'reason.required' => 'Alasan penolakan wajib diisi.',
         ]);
 
         $reservation = Reservations::findOrFail($id);
@@ -226,7 +246,11 @@ class ReservationController extends Controller
             $room->update(['status' => 'inactive',]);
         }
 
-        return new ReservationApprovalResource($reservation);
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservasi berhasil ditolak.',
+            'data' => new ReservationApprovalResource($reservation),
+        ], 200);
     }
 
     public function cancel(Request $request, $id)
@@ -249,6 +273,10 @@ class ReservationController extends Controller
         ]);
         // Mail::to('admin@example.com')->send(new ReservationNotificationMail($reservation, 'canceled'));
 
-        return new ReservationApprovalResource($reservation);
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservasi berhasil dibatalkan.',
+            'data' => new ReservationApprovalResource($reservation),
+        ], 200);
     }
 }

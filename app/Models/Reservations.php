@@ -28,6 +28,7 @@ class Reservations extends Model
     protected $attributes = [
         'status' => 'pending',
     ];
+
     protected static function boot()
     {
         parent::boot();
@@ -47,6 +48,16 @@ class Reservations extends Model
         });
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class,'user_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Rooms::class, 'room_id');
+    }
+
     public function getDayLabelAttribute()
     {
         $days = [
@@ -61,18 +72,20 @@ class Reservations extends Model
 
         return $days[$this->day_of_week] ?? $this->day_of_week;
     }
+    public function getStatusLabelAttribute()
+    {
+        $labels = [
+            'pending' => 'Menunggu',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'canceled' => 'Dibatalkan',
+        ];
+
+        return $labels[$this->status] ?? $this->status;
+    }
 
     public function getStartTimeAttribute()
     {
         return $this->attributes['start_time'] ?? null;
-    }
-    public function user()
-    {
-        return $this->belongsTo(User::class,'user_id');
-    }
-
-    public function room()
-    {
-        return $this->belongsTo(Rooms::class, 'room_id');
     }
 }

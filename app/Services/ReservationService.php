@@ -3,12 +3,18 @@
 namespace App\Services;
 
 use App\Models\Reservations;
+use Illuminate\Http\Request;
 
 class ReservationService
 {
-    public function filterReservations($request)
+    public function filterReservations(Request $request)
     {
         $query = Reservations::with(['user', 'room']);
+        $user = $request->user();
+
+         if (!$user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->has('date') && $request->date !== '') {
             $query->where('date', $request->date);
@@ -37,7 +43,13 @@ class ReservationService
         $query->orderBy($sortBy, $sortOrder);
 
         $perPage = $request->get('per_page', 10);
-        
-        return $query->paginate($perPage);
+
+        if($perPage === 'all'){
+            $reservations = $query->get();
+        } else {
+            $reservations = $query->paginate((int) $perPage);
+        }
+
+        return $reservations;
     }
 }

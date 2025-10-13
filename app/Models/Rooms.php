@@ -52,6 +52,6 @@ class Rooms extends Model
 
     public function fixedSchedules()
     {
-        return $this->hasMany(FixedSchedule::class);
+        return $this->hasMany(FixedSchedule::class, 'room_id');
     }
 }

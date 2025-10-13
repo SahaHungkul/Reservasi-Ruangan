@@ -11,8 +11,6 @@ class RoomService
     {
         $query = Rooms::query();
 
-        // 🔍 filter berdasarkan nama ruangan
-
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->input('name') . '%');
         }
@@ -23,8 +21,8 @@ class RoomService
             $query->where('capacity', '>=', $request->input('capacity'));
         }
 
-        $sortBy = $request->get('sort_by', 'created_at'); // field yang ingin diurutkan
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'asc');
 
         $allowedSorts = ['created_at', 'name', 'capacity', 'status'];
         if (!in_array($sortBy, $allowedSorts)) {
@@ -33,6 +31,14 @@ class RoomService
         $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        return $query->paginate($request->get('per_page', 50));
+        $perPage = $request->get('per_page', 10);
+
+        if($perPage === 'all'){
+            $room = $query->get();
+        } else {
+            $room = $query->paginate((int) $perPage);
+        }
+
+        return $room;
     }
 }

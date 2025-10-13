@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\ReservationApprovalController;
-use App\Http\Controllers\Api\ReservastionCancelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -21,11 +19,7 @@ Route::get('/user', function (Request $request) {
 Route::post('/auth/login', [LoginController::class, 'login']);
 Route::post('/auth/register', [RegisterController::class, 'register']);
 
-Route::post('/auth/logout', [LogoutController::class, 'logout']);
-Route::get('auth/me', [ProfileController::class, 'profile']);
-Route::put('auth/me', [ProfileController::class, 'update']);
 
-Route::get('users', [UserController::class, 'index']);
 Route::get('users/{id}', [UserController::class, 'show']);
 Route::delete('users/{id}', [UserController::class, 'destroy']);
 
@@ -34,14 +28,11 @@ Route::get('rooms/{id}', [RoomController::class, 'show']);
 Route::put('rooms/{id}', [RoomController::class, 'update']);
 Route::delete('rooms/{id}', [RoomController::class, 'destroy']);
 
-Route::get('reservations', [ReservationController::class, 'index'])->name('index');
 Route::patch('reservations/{id}/approve', [ReservationController::class, 'approve']);
 Route::patch('reservations/{id}/reject', [ReservationController::class, 'reject']);
 Route::patch('reservations/{id}/cancel', [ReservationController::class, 'cancel']);
 Route::post('reservations', [ReservationController::class, 'store']);
-Route::get('reservations/{id}', [ReservationController::class, 'show']);
 
-Route::get('fixed-schedules', [FixedScheduleController::class, 'index']);
 Route::post('fixed-schedules', [FixedScheduleController::class, 'store']);
 Route::put('fixed-schedules/{id}', [FixedScheduleController::class, 'update']);
 Route::delete('fixed-schedules/{id}', [FixedScheduleController::class, 'destroy']);
@@ -49,6 +40,20 @@ Route::get('fixed-schedules/{id}', [FixedScheduleController::class, 'show']);
 
 
 Route::middleware('auth:api')->group(function () {
+
+    // Profile routes
+    Route::get('auth/me', [ProfileController::class, 'profile']);
+    Route::put('auth/me', [ProfileController::class, 'update']);
+    Route::post('/auth/logout', [LogoutController::class, 'logout']);
+
+    Route::get('users', [UserController::class, 'index']);
+
+
+    Route::get('reservations/{id}', [ReservationController::class, 'show']);
+    Route::get('reservations', [ReservationController::class, 'index'])->name('index');
+
+    Route::get('fixed-schedules', [FixedScheduleController::class, 'index']);
+
 
     Route::middleware('role_or_permission:admin|manage.users')->group(function () {});
 

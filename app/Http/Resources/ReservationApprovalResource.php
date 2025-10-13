@@ -16,28 +16,20 @@ class ReservationApprovalResource extends JsonResource
     {
         return [
             'reservation_id' => $this->id,
-            'room_id'     => $this->room_id,
-            'user_id'     => $this->user_id,
-            'status'      => $this->status,
-            // 'reason' => $this->when(
-            //     in_array($this->status, ['rejected', 'cancel']),
-            //     $this->reason
-            // ),
-
-            'reason'     => $this->when(
-                $this->status === 'approved' && !is_null($this->reason),
-                $this->reason
-            ),
-
-            // 'reason'     => $this->when(
-            //     in_array($this->status, ['cancel', 'rejected']),
-            //     $this->reason
-            // ),
-
-            // 'reason' => $this->reason,
-            'start_time'  => $this->start_time,
-            'end_time'    => $this->end_time,
-            'updated_at'  => $this->updated_at,
+            'status' => $this->status,
+            'room'=>[
+                'id' => $this->room->id,
+                'name' => $this->room->name,
+            ],
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+            ],
+            'reason' => $this->when(!is_null($this->reason), $this->reason),
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'updated_at'=> $this->updated_at,
         ];
     }
 }

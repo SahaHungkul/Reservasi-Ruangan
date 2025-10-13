@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use Carbon\Carbon;
 
 class StoreReservationRequest extends FormRequest
 {
@@ -57,5 +57,27 @@ class StoreReservationRequest extends FormRequest
                 'errors' => $validator->errors()
             ], 422)
         );
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $data = $this->validated();
+
+            if (!empty($data['start_time']) && !empty($data['end_time'])) {
+                $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
+                $end   = Carbon::parse($data['date'] . ' ' . $data['end_time']);
+                $today = today();
+                $diffInMinutes = $start->diffInMinutes($end);
+
+                if ($diffInMinutes > 180) {
+                    $validator->errors()->add('end_time', 'Durasi Maksimal 3 jam');
+                }
+                $limit = now()->addDays(30)->endOfDay();
+                if ($start->gt($limit)){
+                    $validator->errors()->add('date', 'Reservasi maksimal 30 hari kedepan');
+                }
+            }
+        });
     }
 }

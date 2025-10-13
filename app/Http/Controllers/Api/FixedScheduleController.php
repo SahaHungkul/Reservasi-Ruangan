@@ -26,11 +26,12 @@ class FixedScheduleController extends Controller
     public function index(Request $request)
     {
         try {
-            $schedules = $this->fixedScheduleService->filterFixedSchedules($request);
+            $schedules = $this->fixedScheduleService->FilterFixedSchedules($request);
 
             return response()->json([
                 'status' => true,
-                'data' => FixedScheduleResource::collection($schedules)
+                'message' => 'Schedules retrieved successfully',
+                'data' => $schedules->isEmpty() ? [null] : FixedScheduleResource::collection($schedules)
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

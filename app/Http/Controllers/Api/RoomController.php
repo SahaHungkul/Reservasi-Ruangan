@@ -28,6 +28,12 @@ class RoomController extends Controller
 
             return response()->json([
                 'success' => true,
+                'message' => 'Data ruangan berhasil diambil',
+                'pagination' =>[
+                    'per_page' => $rooms->perPage(),
+                    'page' => $rooms->currentPage() . '/' . $rooms->lastPage(),
+                    'total' => $rooms->total(),
+                ],
                 'data' => RoomResource::collection($rooms)
             ], 200);
         } catch (\Exception $e) {
@@ -117,12 +123,6 @@ class RoomController extends Controller
                 ], 400);
             }
 
-            // if ($room->reservations()->where('status', 'active')->exists()) {
-            //     return response()->json([
-            //         'message' => 'Ruangan tidak bisa edit karena masih ada reservasi aktif.'
-            //     ], 400);
-            // }
-
             $room->update($request->validated());
 
             return response()->json([
@@ -147,17 +147,33 @@ class RoomController extends Controller
         try {
             $room = Rooms::find($id);
 
-            if ($room->status === 'active') {
-                return response()->json([
-                    'message' => 'Ruangan masih aktif. Nonaktifkan dulu sebelum dihapus.'
-                ], 400);
-            }
+            // if ($room->status === 'active') {
+            //     return response()->json([
+            //         'message' => 'Ruangan tidak bisa di hapus karena masih aktif.'
+            //     ], 400);
+            // }
 
             if ($room->reservations()->where('status', 'active')->exists()) {
                 return response()->json([
+                    'success' => false,
                     'message' => 'Ruangan tidak bisa dihapus karena masih ada reservasi aktif.'
                 ], 400);
             }
+
+            if ($room->fixedSchedules()->exists()){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ruangan tidak bisa di hapus karena masih ada jadwal rutin.'
+                ], 400);
+            }
+
+            if (!$room){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Room not found'
+                ], 404);
+            }
+
 
             $room->delete();
 
