@@ -37,7 +37,12 @@ class ReservationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => ReservationResource::collection($reservations)
+                'pagination' => [
+                    'per_page' => $reservations->perPage(),
+                    'page' => $reservations->currentPage() . '/' . $reservations->lastPage(),
+                    'total' => $reservations->total(),
+                ],
+                'data' => $reservations->isEmpty() ? [null] : ReservationResource::collection($reservations)
             ], 200);
         } catch (\Exception $e) {
             Log::error('Gagal mengambil data reservasi: ' . $e->getMessage());

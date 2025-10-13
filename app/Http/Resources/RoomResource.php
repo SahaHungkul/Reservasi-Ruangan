@@ -21,9 +21,9 @@ class RoomResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status,
             'status_label' => $this->status === 'active' ? 'Aktif' : 'Tidak Aktif',
-            'is_active' => $this->status === 'active',
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            // 'is_active' => $this->status === 'active',
+            // 'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+            // 'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
             'created_at_formatted' => $this->created_at?->format('d F Y'),
             'updated_at_formatted' => $this->updated_at?->format('d F Y'),
         ];

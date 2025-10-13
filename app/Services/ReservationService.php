@@ -32,7 +32,7 @@ class ReservationService
             $query->where('status', $request->status);
         }
         $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortOrder = $request->get('sort_order', 'asc');
 
         $allowedSorts = ['created_at', 'date', 'start_time', 'end_time', 'status'];
         if (!in_array($sortBy, $allowedSorts)) {

@@ -30,6 +30,11 @@ class FixedScheduleController extends Controller
 
             return response()->json([
                 'status' => true,
+                'pagination' => [
+                    'per_page' => $schedules->perPage(),
+                    'page' => $schedules->currentPage() . '/' . $schedules->lastPage(),
+                    'total' => $schedules->total(),
+                ],
                 'message' => 'Schedules retrieved successfully',
                 'data' => $schedules->isEmpty() ? [null] : FixedScheduleResource::collection($schedules)
             ], 200);

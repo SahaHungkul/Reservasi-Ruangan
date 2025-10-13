@@ -34,7 +34,7 @@ class RoomController extends Controller
                     'page' => $rooms->currentPage() . '/' . $rooms->lastPage(),
                     'total' => $rooms->total(),
                 ],
-                'data' => RoomResource::collection($rooms)
+                'data' => $rooms->isEmpty() ? [null] : RoomResource::collection($rooms)
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
