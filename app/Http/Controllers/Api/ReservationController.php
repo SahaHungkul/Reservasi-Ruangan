@@ -33,7 +33,28 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         try {
-            $reservations = $this->reservationService->filterReservations($request);
+            $validated = $request->validate([
+                'date' => 'nullable|date',
+                'day_of_week' => 'nullable|string',
+                'user_id' => 'nullable|int|min:1',
+                'room_id' => 'nullable|int|min:1',
+                'status' => 'nullable|string|in:active,inactive',
+                'user_name'=> 'nullable|string',
+                'room_name' => 'nullable|string',
+                'sort_order' => 'nullable|string|in:asc,desc',
+                'per_page' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) {
+                        if ($value === 'all') return; // valid
+
+                        if (!ctype_digit(strval($value)) || (int)$value < 1) {
+                            $fail("The $attribute field must be a positive integer or 'all'.");
+                        }
+                    },
+                ],
+                'page' => 'nullable|int|min:1',
+            ]);
+            $reservations = $this->reservationService->filterReservations($validated);
 
             return response()->json([
                 'success' => true,

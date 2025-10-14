@@ -6,45 +6,36 @@ use App\Models\FixedSchedule;
 
 class FixedScheduleService
 {
-    public function FilterFixedSchedules($request)
+    public function filterFixedSchedules(array $filters)
     {
-        $query = FixedSchedule::query();
+        $query = FixedSchedule::with(['user', 'room']);
 
-        if (!empty($request->input('room_id'))) {
-            $query->where('room_id', $request->input('room_id'));
+        if (!empty($filters['room_id'])) {
+            $query->where('room_id', $filters['room_id']);
         }
 
-        if (!empty($request->input('day_of_week'))) {
-            $query->where('day_of_week', strtolower($request->input('day_of_week')));
+        if (!empty($filters['day_of_week'])) {
+            $query->where('day_of_week', 'like', '%' . $filters['day_of_week'] . '%');
         }
 
-        if (!empty($request->input('start_time'))) {
-            $query->where('start_time', '>=', $request->start_time);
+        if (!empty($filters['start_time'])) {
+            $query->where('start_time', '>=', $filters['start_time']);
         }
 
-        if (!empty($request->input('end_time'))) {
-            $query->where('end_time', '<=', $request->end_time);
+        if (!empty($filters['end_time'])) {
+            $query->where('end_time', '<=', $filters['end_time']);
         }
 
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'asc');
-
-        $allowedSorts = ['created_at', 'day_of_week', 'start_time', 'end_time'];
-        if (!in_array($sortBy, $allowedSorts)) {
-            $sortBy = 'created_at';
-        }
-
-        $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
+        // Sorting
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        $perPage = $request->get('per_page', 10);
-
-        if($perPage === 'all'){
-            $fixedSchedules = $query->get();
-        } else {
-            $fixedSchedules = $query->paginate((int) $perPage);
+        // Pagination
+        if (($filters['per_page'] ?? null) === 'all') {
+            return $query->get();
         }
 
-        return $fixedSchedules;
+        return $query->paginate($filters['per_page'] ?? 10);
     }
 }

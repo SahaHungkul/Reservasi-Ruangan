@@ -2,31 +2,30 @@
 
 namespace App\Services;
 
-use App\Models\Rooms;
+use App\Models\User;
 
-class RoomService
+class UserService
 {
-    public function filterRooms(array $filters)
+    public function filterUser(array $filters)
     {
-        $query = Rooms::query();
+        $query = User::query();
 
         if (!empty($filters['name'])) {
             $query->where('name', 'like', '%' . $filters['name'] . '%');
         }
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-        if (!empty($filters['capacity'])) {
-            $query->where('capacity', '>=', $filters['capacity']);
+
+        if (!empty($filters['role'])) {
+            $query->where('role', $filters['role']);
         }
 
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = strtolower($filters['sort_order'] ?? 'asc');
-        $allowedSorts = ['created_at', 'name', 'capacity', 'status'];
+        $allowedSorts = ['created_at', 'name', 'role'];
 
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'created_at';
         }
+
         $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
 
         $perPage = $filters['per_page'] ?? 10;
@@ -34,7 +33,7 @@ class RoomService
         if ($perPage === 'all') {
             return $query->get();
         }
-        
+
         return $query->paginate((int)$perPage);
     }
 }

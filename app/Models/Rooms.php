@@ -33,7 +33,6 @@ class Rooms extends Model
         return $this->status === 'inactive';
     }
 
-    // Di Model Room.php
     protected static function boot()
     {
         parent::boot();

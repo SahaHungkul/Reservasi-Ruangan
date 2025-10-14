@@ -24,12 +24,45 @@ class RoomController extends Controller
     public function index(Request $request)
     {
         try {
-            $rooms = $this->roomService->filterRooms($request);
+            $validated = $request->validate([
+                'name' => 'nullable|string',
+                'capacity' => 'nullable|int|min:1',
+                'status' => 'nullable|string',
+                'sort_by' => 'nullable|string|in:created_at,status,name,capacity',
+                'sort_order' => 'nullable|string|in:asc,desc',
+                'per_page' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) {
+                        if ($value === 'all') return; // valid
+
+                        if (!ctype_digit(strval($value)) || (int)$value < 1) {
+                            $fail("The $attribute field must be a positive integer or 'all'.");
+                        }
+                    },
+                ],
+                'page' => 'nullable|int|min:1',
+            ]);
+
+            $rooms = $this->roomService->filterRooms($validated);
+
+            // Jika user menggunakan per_page = all
+            if (($validated['per_page'] ?? null) === 'all') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Berhasil memanggil semua data',
+                    'pagination' => [
+                        'per_page' => 'all',
+                        'page' => '1/1',
+                        'total' => $rooms->count(),
+                    ],
+                    'data' => RoomResource::collection($rooms),
+                ], 200);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data ruangan berhasil diambil',
-                'pagination' =>[
+                'pagination' => [
                     'per_page' => $rooms->perPage(),
                     'page' => $rooms->currentPage() . '/' . $rooms->lastPage(),
                     'total' => $rooms->total(),
@@ -160,14 +193,14 @@ class RoomController extends Controller
                 ], 400);
             }
 
-            if ($room->fixedSchedules()->exists()){
+            if ($room->fixedSchedules()->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Ruangan tidak bisa di hapus karena masih ada jadwal rutin.'
                 ], 400);
             }
 
-            if (!$room){
+            if (!$room) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Room not found'

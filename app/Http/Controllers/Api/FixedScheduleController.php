@@ -20,32 +20,64 @@ class FixedScheduleController extends Controller
     {
         $this->fixedScheduleService = $fixedScheduleService;
     }
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         try {
-            $schedules = $this->fixedScheduleService->FilterFixedSchedules($request);
-
-            return response()->json([
-                'status' => true,
-                'pagination' => [
-                    'per_page' => $schedules->perPage(),
-                    'page' => $schedules->currentPage() . '/' . $schedules->lastPage(),
-                    'total' => $schedules->total(),
+            $validated = $request->validate([
+                'room_id' => 'nullable|integer|exists:rooms,id',
+                'day_of_week' => 'nullable|string',
+                'start_time' => 'nullable|date_format:H:i',
+                'end_time' => 'nullable|date_format:H:i',
+                'sort_by' => 'nullable|string|in:created_at,day_of_week,start_time,end_time',
+                'sort_order' => 'nullable|string|in:asc,desc',
+                'per_page' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) {
+                        if ($value === 'all') return; // valid
+                        if (!ctype_digit(strval($value)) || (int)$value < 1) {
+                            $fail("The $attribute field must be a positive integer or 'all'.");
+                        }
+                    },
                 ],
-                'message' => 'Schedules retrieved successfully',
-                'data' => $schedules->isEmpty() ? [null] : FixedScheduleResource::collection($schedules)
-            ], 200);
-        } catch (\Exception $e) {
+                'page' => 'nullable|integer|min:1',
+            ]);
+
+            $fixedSchedules = $this->fixedScheduleService->filterFixedSchedules($validated);
+
+            // Jika per_page = all
+            if (($validated['per_page'] ?? null) === 'all') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Berhasil memanggil semua data',
+                    'pagination' => [
+                        'per_page' => 'all',
+                        'page' => '1/1',
+                        'total' => $fixedSchedules->count(),
+                    ],
+                    'data' => FixedScheduleResource::collection($fixedSchedules),
+                ], 200);
+            }
+
+            // Jika pagination biasa
             return response()->json([
-                'status' => false,
-                'message' => 'Failed to retrieve schedules',
-                'error' => $e->getMessage()
+                'success' => true,
+                'message' => 'Berhasil memanggil data',
+                'pagination' => [
+                    'per_page' => $fixedSchedules->perPage(),
+                    'page' => $fixedSchedules->currentPage() . '/' . $fixedSchedules->lastPage(),
+                    'total' => $fixedSchedules->total(),
+                ],
+                'data' => $fixedSchedules->isEmpty() ? [null] : FixedScheduleResource::collection($fixedSchedules),
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data.',
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
+
 
     public function getByRoom($roomId)
     {
@@ -100,7 +132,7 @@ class FixedScheduleController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Jadwal rutin bertabrakan dengan jadwal rutin lain di ruangan yang sama',
-                ],400);
+                ], 400);
             }
             $fixedSchedule = FixedSchedule::create($validated);
 
@@ -157,7 +189,7 @@ class FixedScheduleController extends Controller
      */
     public function update(UpdateFixedScheduleRequest $request, string $id)
     {
-        try{
+        try {
             DB::beginTransaction();
 
             $schedule = FixedSchedule::findOrFail($id);
@@ -181,7 +213,7 @@ class FixedScheduleController extends Controller
 
                     $query->where(function ($q) use ($startTime, $endTime) {
                         $q->where('start_time', '<', $endTime)
-                          ->where('end_time', '>', $startTime);
+                            ->where('end_time', '>', $startTime);
                     });
                 })
                 ->exists();
@@ -197,21 +229,21 @@ class FixedScheduleController extends Controller
 
             if (isset($validated['room_id']) && $validated['room_id'] != $oldRoomId) {
 
-            // Ruang lama jadi inactive jika tidak ada jadwal aktif lain
-            $oldRoom = Rooms::find($oldRoomId);
-            if ($oldRoom) {
-                $stillUsed = FixedSchedule::where('room_id', $oldRoomId)->exists();
-                if (!$stillUsed) {
-                    $oldRoom->update(['status' => 'inactive']);
+                // Ruang lama jadi inactive jika tidak ada jadwal aktif lain
+                $oldRoom = Rooms::find($oldRoomId);
+                if ($oldRoom) {
+                    $stillUsed = FixedSchedule::where('room_id', $oldRoomId)->exists();
+                    if (!$stillUsed) {
+                        $oldRoom->update(['status' => 'inactive']);
+                    }
+                }
+
+                // Ruang baru jadi active
+                $newRoom = Rooms::find($validated['room_id']);
+                if ($newRoom) {
+                    $newRoom->update(['status' => 'active']);
                 }
             }
-
-            // Ruang baru jadi active
-            $newRoom = Rooms::find($validated['room_id']);
-            if ($newRoom) {
-                $newRoom->update(['status' => 'active']);
-            }
-        }
 
             DB::commit();
 
