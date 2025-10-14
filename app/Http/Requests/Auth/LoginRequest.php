@@ -26,4 +26,15 @@ class LoginRequest extends FormRequest
             'password' => 'required|string|min:8',
         ];
     }
+
+    public function message()
+    {
+        return [
+            'email.required' => 'Email harap diisi',
+            'email.email' => 'Email tidak valid',
+            'password.required' => 'Password harap diisi',
+            'password.password' => 'Password tidak sesuai',
+            'password.min' => 'Password minimal 8 karakter',
+        ];
+    }
 }

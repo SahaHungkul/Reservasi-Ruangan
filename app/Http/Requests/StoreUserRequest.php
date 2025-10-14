@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RegisterRequest extends FormRequest
+class StoreUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +22,9 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:15',
             'email' => 'required|email|unique:users,email',
+            'role' => 'required|in:admin,karyawan',
             'password' => 'required|string|min:8|confirmed',
         ];
     }
@@ -33,10 +34,9 @@ class RegisterRequest extends FormRequest
         return [
             'name.required' => 'Nama wajib diisi',
             'name.string' => 'Nama harus berupa teks',
-            'name.max' => 'Nama maksimal 255 karakter',
+            'name.max' => 'Nama maksimal 15 karakter',
             'email.required' => 'Email wajib diisi',
             'email.email' => 'Email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
             'password.min' => 'Password minimal 8 karakter',
             'password.confirmed' => 'Konfirmasi password tidak sesuai',
             'password.required' => 'Password wajib diisi',

@@ -288,7 +288,7 @@
                 </div>
                 <p class="text-gray-700 mb-6">
                     Apakah Anda yakin ingin menyetujui reservasi dari <strong>{{ reservationToApprove?.user?.name
-                        }}</strong>?
+                    }}</strong>?
                 </p>
                 <div class="flex gap-3">
                     <button @click="approveReservation" :disabled="loading"
@@ -357,7 +357,7 @@
                 </div>
                 <p class="text-gray-700 mb-6">
                     Apakah Anda yakin ingin menghapus reservasi dari <strong>{{ reservationToDelete?.user?.name
-                        }}</strong>?
+                    }}</strong>?
                 </p>
                 <div class="flex gap-3">
                     <button @click="deleteReservation" :disabled="loading"
