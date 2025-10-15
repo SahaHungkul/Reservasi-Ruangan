@@ -39,7 +39,7 @@ class ReservationController extends Controller
                 'user_id' => 'nullable|int|min:1',
                 'room_id' => 'nullable|int|min:1',
                 'status' => 'nullable|string|in:active,inactive',
-                'user_name'=> 'nullable|string',
+                'user_name' => 'nullable|string',
                 'room_name' => 'nullable|string',
                 'sort_order' => 'nullable|string|in:asc,desc',
                 'per_page' => [
@@ -83,11 +83,9 @@ class ReservationController extends Controller
         try {
             $validated = $request->validated();
 
-            // Get day of week from date
             $date = Carbon::parse($validated['date']);
             $dayOfWeek = strtolower($date->format('l'));
 
-            // Cek room ada
             $room = Rooms::find($validated['room_id']);
             if (!$room) {
                 return response()->json([
@@ -96,7 +94,6 @@ class ReservationController extends Controller
                 ], 404);
             }
 
-            // CEK 1: Fixed Schedule Conflict (Auto Reject)
             $fixedConflict = FixedSchedule::where('room_id', $validated['room_id'])
                 ->where('day_of_week', $dayOfWeek)
                 ->whereRaw('? < end_time AND ? > start_time', [
@@ -106,7 +103,6 @@ class ReservationController extends Controller
                 ->first();
 
             if ($fixedConflict) {
-                // Auto rejected karena bentrok dengan jadwal tetap
                 $reservation = Reservations::create([
                     'user_id' => Auth::id(),
                     'room_id' => $validated['room_id'],
@@ -117,6 +113,16 @@ class ReservationController extends Controller
                     'reason' => "Otomatis ditolak: Bentrok dengan jadwal tetap ({$fixedConflict->description}) pada hari {$fixedConflict->day_label} pukul " . date('H:i', strtotime($fixedConflict->start_time)) . "-" . date('H:i', strtotime($fixedConflict->end_time))
                 ]);
 
+                activity('reservation')
+                    ->causedBy(Auth::user())
+                    ->performedOn($reservation)
+                    ->withProperties([
+                        'date' => $reservation->date,
+                        'start' => $reservation->start_time,
+                        'end' => $reservation->end_time,
+                    ])
+                    ->log('Reservasi baru dibuat dan menunggu persetujuan.');
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Reservasi otomatis ditolak karena bentrok dengan jadwal tetap',
@@ -124,7 +130,6 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            // CEK 2: Reservation Conflict dengan yang sudah approved
             $reservationConflict = Reservations::where('room_id', $validated['room_id'])
                 ->where('date', $validated['date'])
                 ->where('status', 'approved')
@@ -141,8 +146,6 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            // Buat reservation dengan status pending
-            // day_of_week akan auto-fill dari boot method
             $reservation = Reservations::create([
                 'user_id' => Auth::id(),
                 'room_id' => $validated['room_id'],
@@ -210,6 +213,8 @@ class ReservationController extends Controller
                 ], 422);
             }
 
+            $oldStatus = $reservation->status;
+
             $reservation->update([
                 'status' => 'approved',
                 'reason' => $request->input('reason'),
@@ -236,6 +241,16 @@ class ReservationController extends Controller
                     'reason' => 'Ditolak otomatis karena jadwal sudah diambil reservasi lain.',
                 ]);
 
+            activity('reservation')
+                ->causedBy(Auth::user())
+                ->performedOn($reservation)
+                ->event('approved')
+                ->withProperties([
+                    'old_status' => $oldStatus,
+                    'new_status' => $reservation->status,
+                ])
+                ->log("Status reservasi diubah dari {$oldStatus} menjadi {$reservation->status}");
+
             // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
 
             return response()->json([
@@ -260,6 +275,7 @@ class ReservationController extends Controller
 
         $reservation = Reservations::findOrFail($id);
 
+        $oldStatus = $reservation->status;
         $reservation->update([
             'status' => 'rejected',
             'reason' => $request->reason,
@@ -271,6 +287,16 @@ class ReservationController extends Controller
         if ($room) {
             $room->update(['status' => 'inactive',]);
         }
+
+        activity('reservation')
+            ->causedBy(Auth::user())
+            ->performedOn($reservation)
+            ->event('rejected')
+            ->withProperties([
+                'old_status' => $oldStatus,
+                'new_status' => $reservation->status,
+            ])
+            ->log("Status reservasi diubah dari {$oldStatus} menjadi {$reservation->status}");
 
         return response()->json([
             'success' => true,
@@ -297,6 +323,13 @@ class ReservationController extends Controller
             'status' => 'canceled',
             'reason' => $request->reason,
         ]);
+
+        activity('reservation')
+            ->causedBy(Auth::user())
+            ->performedOn($reservation)
+            ->event('canceled')
+            ->log('Reservasi dibatalkan oleh pengguna.');
+
         // Mail::to('admin@example.com')->send(new ReservationNotificationMail($reservation, 'canceled'));
 
         return response()->json([

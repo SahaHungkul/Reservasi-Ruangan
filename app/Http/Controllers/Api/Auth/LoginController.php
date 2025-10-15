@@ -24,6 +24,14 @@ class LoginController extends Controller
         }
         $token = $user->createToken('API token')->accessToken;
 
+        // activity('auth')
+        //     ->causedBy($user)
+        //     ->withProperties([
+        //         'ip' => request()->ip(),
+        //         'user_agent' => request()->userAgent(),
+        //     ])
+        //     ->log('User login ke sistem');
+
         return response()->json([
             'Message' => 'Login Berhasil',
             'data' => new LoginResource($user),

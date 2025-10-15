@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Dedoc\Scramble\Scramble;
-use Illuminate\Routing\Route;   
+use Illuminate\Routing\Route;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Token;
 use Laravel\Passport\RefreshToken;
@@ -14,7 +14,8 @@ use Laravel\Passport\Client;
 use Laravel\Passport\DeviceCode;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-
+use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Models\Activity;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -43,5 +44,10 @@ class AppServiceProvider extends ServiceProvider
                     SecurityScheme::http('bearer')
                 );
             });
+
+        Activity::saving(function (Activity $activity) {
+            $activity->causer_id = Auth::id();
+            $activity->causer_type = Auth::user() ? get_class(Auth::user()) : null;
+        });
     }
 }

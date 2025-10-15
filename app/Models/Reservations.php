@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Reservations extends Model
 {
-    use HasFactory;
-
+    use HasFactory, LogsActivity;
     protected $fillable = [
         'user_id',
         'room_id',
@@ -50,7 +51,7 @@ class Reservations extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function room()
@@ -87,5 +88,17 @@ class Reservations extends Model
     public function getStartTimeAttribute()
     {
         return $this->attributes['start_time'] ?? null;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('reservation')
+            ->logFillable()
+            ->logOnlyDirty()
+            // ->setDescriptionForEvent(fn(string $eventName) => "Reservasi telah {$eventName}");
+            ->setDescriptionForEvent(function(string $eventName){
+                return "Reservation has {$eventName}";
+            });
     }
 }

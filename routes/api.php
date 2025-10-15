@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ReservationLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -34,6 +35,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
     Route::get('reservations', [ReservationController::class, 'index'])->name('index');
 
+    Route::get('/admin/reservation-log', [ReservationLogController::class, 'index']);
 
     Route::middleware('role_or_permission:admin|manage.users')->group(function () {
         Route::get('users', [UserController::class, 'index']);

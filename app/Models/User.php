@@ -8,13 +8,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 // use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
 
-    use HasRoles,HasApiTokens, HasFactory, Notifiable;
+    use HasRoles,HasApiTokens, HasFactory, Notifiable,LogsActivity;
     protected $guard_name = 'api';
 
     /**
@@ -55,5 +57,17 @@ class User extends Authenticatable
     public function reservations()
     {
         return $this->hasMany(Reservations::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('room')
+            ->logFillable()
+            ->logOnlyDirty()
+            // ->setDescriptionForEvent(fn(string $eventName) => "Reservasi telah {$eventName}");
+            ->setDescriptionForEvent(function(string $eventName){
+                return "Room has been {$eventName}";
+            });
     }
 }
