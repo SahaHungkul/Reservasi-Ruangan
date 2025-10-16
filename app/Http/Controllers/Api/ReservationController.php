@@ -18,9 +18,31 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use App\Exports\ReservationsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReservationController extends Controller
 {
+    // Controller
+    public function export()
+    {
+        return Excel::download(new ReservationsExport, 'reservations.xlsx');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $validated['start_date'] ?? null;
+        $endDate   = $validated['end_date'] ?? null;
+
+        $fileName = 'reservations_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+         return Excel::download(new ReservationsExport($startDate, $endDate), $fileName);
+    }
     protected $reservationService;
 
     public function __construct(ReservationService $reservationService)
