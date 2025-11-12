@@ -45,7 +45,7 @@ class UserController extends Controller
 
             $user = $this->userService->filterUser($validated);
 
-           
+
             if ($validated['per_page'] ?? null === 'all') {
                 return response()->json([
                     'success' => true,
@@ -129,6 +129,23 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getRoles(){
+        try {
+            $roles = User::getRoleNames();
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil mengambil data role',
+                'data' => $roles
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data role',
                 'error' => $e->getMessage()
             ], 500);
         }

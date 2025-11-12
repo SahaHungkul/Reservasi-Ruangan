@@ -8,7 +8,7 @@ class FixedScheduleService
 {
     public function filterFixedSchedules(array $filters)
     {
-        $query = FixedSchedule::with(['user', 'room']);
+        $query = FixedSchedule::with(['room']);
 
         if (!empty($filters['room_id'])) {
             $query->where('room_id', $filters['room_id']);
@@ -36,6 +36,6 @@ class FixedScheduleService
             return $query->get();
         }
 
-        return $query->paginate($filters['per_page'] ?? 10);
+        return $query->paginate($filters['per_page'] ?? 99);
     }
 }

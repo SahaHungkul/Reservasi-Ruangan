@@ -29,12 +29,12 @@ class RoomService
         }
         $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
 
-        $perPage = $filters['per_page'] ?? 10;
+        $perPage = $filters['per_page'] ?? 99;
 
         if ($perPage === 'all') {
             return $query->get();
         }
-        
+
         return $query->paginate((int)$perPage);
     }
 }

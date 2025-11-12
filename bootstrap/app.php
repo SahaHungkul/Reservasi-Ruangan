@@ -25,6 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
     //     $middleware->appendToGroup('api', \App\Http\Middleware\Cors::class);
     // })
 
+    ->withMiddleware(function (Middleware $middleware) {
+        // Register native CORS middleware in Laravel 12
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // You can add other global middleware here
+    })
+
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

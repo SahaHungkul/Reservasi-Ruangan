@@ -16,7 +16,14 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::get('/reservations/export', [ReservationController::class, 'exportExcel']);
+Route::get('users', [UserController::class, 'index']);
+
+Route::get('rooms', [RoomController::class, 'index']);
+Route::get('fixed-schedules', [FixedScheduleController::class, 'index']);
+Route::put('rooms/{id}', [RoomController::class, 'update']);
+    Route::get('reservations', [ReservationController::class, 'index'])->name('index');
+
+
 
 Route::post('/auth/login', [LoginController::class, 'login']);
 Route::post('/auth/register', [RegisterController::class, 'register']);
@@ -27,19 +34,18 @@ Route::middleware('auth:api')->group(function () {
     Route::put('auth/me', [ProfileController::class, 'update']);
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
 
-    Route::get('rooms', [RoomController::class, 'index']);
     Route::get('rooms/{id}', [RoomController::class, 'show']);
 
     Route::get('fixed-schedules/{id}', [FixedScheduleController::class, 'show']);
-    Route::get('fixed-schedules', [FixedScheduleController::class, 'index']);
 
     Route::get('reservations/{id}', [ReservationController::class, 'show']);
-    Route::get('reservations', [ReservationController::class, 'index'])->name('index');
 
     Route::get('/admin/reservation-log', [ReservationLogController::class, 'index']);
 
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/reservations/export', [ReservationController::class, 'exportExcel']);
+    });
     Route::middleware('role_or_permission:admin|manage.users')->group(function () {
-        Route::get('users', [UserController::class, 'index']);
         Route::post('users', [UserController::class, 'store']);
         Route::get('users/{id}', [UserController::class, 'show']);
         Route::put('users/{id}', [UserController::class, 'update']);
@@ -48,7 +54,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::middleware('role_or_permission:admin|manage rooms')->group(function () {
         Route::post('rooms', [RoomController::class, 'store']);
-        Route::put('rooms/{id}', [RoomController::class, 'update']);
         Route::delete('rooms/{id}', [RoomController::class, 'destroy']);
     });
 

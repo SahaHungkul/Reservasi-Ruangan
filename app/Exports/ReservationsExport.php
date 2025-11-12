@@ -21,13 +21,25 @@ class ReservationsExport implements FromCollection, WithHeadings, WithMapping, S
 
     public function collection()
     {
-        $query = Reservations::with(['user', 'room'])->orderBy('date', 'desc');
+        $query = Reservations::with(['user', 'room'])
+            ->orderBy('date', 'asc');
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('date', [$this->startDate, $this->endDate]);
         }
 
-        return $query->get();
+        return $query->get()->map(function ($reservation) {
+            return [
+                'ID' => $reservation->id,
+                $reservation->user->name ?? '-',
+                $reservation->room->name ?? '-',
+                $reservation->date,
+                $reservation->start_time,
+                $reservation->end_time,
+                ucfirst($reservation->status),
+                $reservation->reason ?? '-',
+            ];
+        });
     }
 
     public function headings(): array

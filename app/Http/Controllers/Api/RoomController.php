@@ -24,6 +24,7 @@ class RoomController extends Controller
     public function index(Request $request)
     {
         try {
+            // $rooms = Rooms::all();
             $validated = $request->validate([
                 'name' => 'nullable|string',
                 'capacity' => 'nullable|int|min:1',
