@@ -58,6 +58,7 @@ Route::middleware('auth:api')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/reservation-log', [ReservationLogController::class, 'index']);
         Route::get('/reservations/export', [ReservationController::class, 'exportExcel']);
+        Route::post('/reservations', [ReservationController::class, 'store']);
     });
 
     Route::middleware('role_or_permission:admin|manage users')->group(function () {

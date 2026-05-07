@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FixedSchedule;
 use App\Models\Reservations;
 use App\Models\Rooms;
-use App\Http\Requests\StoreReservationRequest;
+use App\Http\Requests\StoreAdminReservationRequest;
 use App\Http\Requests\GetReservationRequest;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\PaginatedResource;
@@ -69,7 +69,7 @@ class ReservationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreReservationRequest $request): JsonResponse
+    public function store(StoreAdminReservationRequest $request): JsonResponse
     {
         try {
             $validated = $request->validated();
@@ -95,7 +95,7 @@ class ReservationController extends Controller
 
             if ($fixedConflict) {
                 $reservation = Reservations::create([
-                    'user_id' => Auth::id(),
+                    'user_id' => $validated['user_id'],
                     'room_id' => $validated['room_id'],
                     'date' => $validated['date'],
                     'start_time' => $validated['start_time'],
@@ -138,7 +138,7 @@ class ReservationController extends Controller
             }
 
             $reservation = Reservations::create([
-                'user_id' => Auth::id(),
+                'user_id' => $validated['user_id'],
                 'room_id' => $validated['room_id'],
                 'date' => $validated['date'],
                 'start_time' => $validated['start_time'],
