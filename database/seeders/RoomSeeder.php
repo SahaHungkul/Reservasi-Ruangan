@@ -39,5 +39,8 @@ class RoomSeeder extends Seeder
                 'status' => 'inactive',
             ]);
         }
+
+        // Generate 50 dummy rooms
+        Rooms::factory(50)->create();
     }
 }

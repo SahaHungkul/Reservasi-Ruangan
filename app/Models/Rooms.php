@@ -70,7 +70,10 @@ class Rooms extends Model
     public function scopeSearch($query, $search)
     {
         return $query->when($search, function ($query, $search){
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'like', "%{$search}%")
+            ->orWhere('capacity', 'like', "%{$search}%")
+            ->orWhere('description', 'like', "%{$search}%")
+            ->orWhere('status', 'like', "%{$search}%");
         });
     }
 }

@@ -101,6 +101,7 @@ class Reservations extends Model
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
             'canceled' => 'Dibatalkan',
+            'completed' => 'Selesai',
         ];
 
         return $labels[$this->status] ?? $this->status;

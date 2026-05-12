@@ -18,9 +18,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use App\Service\RservationService;
 
 class KaryawanController extends Controller
 {
+
+    public function __construct(protected ReservationService $reservationService){}
     /**
      * Display a listing of rooms for karyawan dashboard.
      */
@@ -58,90 +61,53 @@ class KaryawanController extends Controller
         DB::beginTransaction();
 
         try {
-            $validated = $request->validated();
+            $data = $request->validated();
 
-            $date = Carbon::parse($validated['date']);
-            $dayOfWeek = strtolower($date->format('l'));
-
-            $room = Rooms::find($validated['room_id']);
+            // Validasi room
+            $room = Rooms::find($data['room_id']);
             if (!$room) {
                 DB::rollBack();
                 return ApiResponse::error('Ruangan tidak ditemukan', 404);
             }
 
-            // Check conflict with fixed schedules
-            $fixedConflict = FixedSchedule::where('room_id', $validated['room_id'])
-                ->where('day_of_week', $dayOfWeek)
-                ->whereRaw('? < end_time AND ? > start_time', [
-                    $validated['start_time'],
-                    $validated['end_time']
-                ])
-                ->first();
+            // Cek status real-time ruangan (Pendekatan B)
+            $roomStatus = $this->reservationService->getRoomRealtimeStatus($room->id);
+            if ($roomStatus === 'active') {
+                DB::rollBack();
+                return ApiResponse::error('Ruangan sedang aktif digunakan', 400);
+            }
+
+            // Cek konflik jadwal tetap → auto rejected
+            $fixedConflict = $this->reservationService->checkFixedScheduleConflict(
+                $data['room_id'], $data['date'], $data['start_time'], $data['end_time']
+            );
 
             if ($fixedConflict) {
-                $reservation = Reservations::create([
-                    'user_id' => Auth::id(),
-                    'room_id' => $validated['room_id'],
-                    'date' => $validated['date'],
-                    'start_time' => $validated['start_time'],
-                    'end_time' => $validated['end_time'],
-                    'status' => 'rejected',
-                    'reason' => "Otomatis ditolak: Bentrok dengan jadwal tetap ({$fixedConflict->description}) pada hari {$fixedConflict->day_label} pukul " . date('H:i', strtotime($fixedConflict->start_time)) . "-" . date('H:i', strtotime($fixedConflict->end_time))
-                ]);
+                $reason = "Otomatis ditolak: Bentrok dengan jadwal tetap ({$fixedConflict->description}) "
+                        . "pada hari {$fixedConflict->day_label} pukul "
+                        . date('H:i', strtotime($fixedConflict->start_time)) . "-"
+                        . date('H:i', strtotime($fixedConflict->end_time));
 
-                activity('reservation')
-                    ->causedBy(Auth::user())
-                    ->performedOn($reservation)
-                    ->withProperties([
-                        'date' => $reservation->date,
-                        'start' => $reservation->start_time,
-                        'end' => $reservation->end_time,
-                    ])
-                    ->log('Reservasi baru dibuat dan otomatis ditolak karena bentrok jadwal tetap.');
-
+                $reservation = $this->reservationService->createReservation($data, 'rejected', $reason);
                 DB::commit();
 
                 return response()->json([
                     'success' => false,
                     'message' => 'Reservasi otomatis ditolak karena bentrok dengan jadwal tetap',
-                    'data' => new ReservationResource($reservation->load(['user', 'room']))
+                    'data'    => new ReservationResource($reservation->load(['user', 'room'])),
                 ], 400);
             }
 
-            // Check conflict with approved reservations
-            $reservationConflict = Reservations::where('room_id', $validated['room_id'])
-                ->where('date', $validated['date'])
-                ->where('status', 'approved')
-                ->whereRaw('? < end_time AND ? > start_time', [
-                    $validated['start_time'],
-                    $validated['end_time']
-                ])
-                ->exists();
-
-            if ($reservationConflict) {
+            // Cek konflik dengan reservasi lain
+            if ($this->reservationService->checkReservationConflict(
+                $data['room_id'], $data['date'], $data['start_time'], $data['end_time']
+            )) {
                 DB::rollBack();
                 return ApiResponse::error('Ruangan sudah direservasi pada waktu tersebut', 400);
             }
 
-            $reservation = Reservations::create([
-                'user_id' => Auth::id(),
-                'room_id' => $validated['room_id'],
-                'date' => $validated['date'],
-                'start_time' => $validated['start_time'],
-                'end_time' => $validated['end_time'],
-                'status' => 'pending'
-            ]);
-
-            activity('reservation')
-                ->causedBy(Auth::user())
-                ->performedOn($reservation)
-                ->withProperties([
-                    'date' => $reservation->date,
-                    'start' => $reservation->start_time,
-                    'end' => $reservation->end_time,
-                ])
-                ->log('Reservasi baru dibuat dan menunggu persetujuan.');
-
+            // Buat reservasi
+            $reservation = $this->reservationService->createReservation($data, 'pending');
             DB::commit();
 
             return ApiResponse::success(
@@ -149,13 +115,14 @@ class KaryawanController extends Controller
                 'Reservasi berhasil dibuat dan menunggu persetujuan',
                 201
             );
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal membuat reservasi karyawan: ' . $e->getMessage());
-
             return ApiResponse::error('Gagal membuat reservasi', 500);
         }
     }
+    
     public function cancel(Request $request, $id)
     {
         $request->validate([
