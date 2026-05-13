@@ -6,6 +6,7 @@ use App\Models\Reservations;
 use App\Models\FixedSchedule;
 use App\Models\Rooms;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ReservationService

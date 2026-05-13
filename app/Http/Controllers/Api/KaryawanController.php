@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
-use App\Service\RservationService;
+use App\Services\ReservationService;
 
 class KaryawanController extends Controller
 {
@@ -122,7 +122,7 @@ class KaryawanController extends Controller
             return ApiResponse::error('Gagal membuat reservasi', 500);
         }
     }
-    
+
     public function cancel(Request $request, $id)
     {
         $request->validate([
