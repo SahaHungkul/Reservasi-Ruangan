@@ -209,12 +209,9 @@ class ReservationController extends Controller
             $reservation->update([
                 'status' => 'approved',
                 'reason' => $request->input('reason'),
+                // 'approved_by' => Auth::id(),
+                // 'approved_at' => now()
             ]);
-
-            $room = Rooms::find($reservation->room_id);
-            if ($room) {
-                $room->update(['status' => 'active']);
-            }
 
             Reservations::where('room_id', $reservation->room_id)
                 ->where('id', '!=', $reservation->id)
@@ -230,6 +227,8 @@ class ReservationController extends Controller
                 ->update([
                     'status' => 'rejected',
                     'reason' => 'Ditolak otomatis karena jadwal sudah diambil reservasi lain.',
+                    // 'rejected_by' => Auth::id(),
+                    // 'rejected_at' => now(),
                 ]);
 
             activity('reservation')
@@ -238,9 +237,9 @@ class ReservationController extends Controller
                 ->event('approved')
                 ->withProperties([
                     'old_status' => $oldStatus,
-                    'new_status' => $reservation->status,
+                    'new_status' => 'approved',
                 ])
-                ->log("Status reservasi diubah dari {$oldStatus} menjadi {$reservation->status}");
+                ->log("Status reservasi diubah dari {$oldStatus} menjadi approved");
 
             // Mail::to($reservation->user->email)->send(new ReservationNotificationMail($reservation, 'approved'));
 
