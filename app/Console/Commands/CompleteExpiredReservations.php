@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\FixedSchedule;
 use App\Models\Reservations;
 use App\Models\Rooms;
 use Illuminate\Console\Command;
@@ -49,24 +50,39 @@ class CompleteExpiredReservations extends Command
         $this->info("{$updated} reservasi → completed.");
     }
 
-    private function syncRoomStatus() {
-        $now = now();
+    private function syncRoomStatus(): void
+    {
+        $now        = now();
+        $dayOfWeek  = strtolower($now->format('l'));
+        $currentTime = $now->format('H:i:s');
+        $today      = $now->toDateString();
 
-        // Ambil room_id yang sedang aktif (ada reservasi berjalan sekarang)
-        $activeRoomIds = Reservations::where('status', 'approved')
-            ->whereDate('date', $now->toDateString())
-            ->where('start_time', '<=', $now->format('H:i:s'))
-            ->where('end_time', '>', $now->format('H:i:s'))
+        // 1. Room aktif karena Fixed Schedule (prioritas utama)
+        $fixedActiveRoomIds = FixedSchedule::where('day_of_week', $dayOfWeek)
+            ->where('start_time', '<=', $currentTime)
+            ->where('end_time', '>', $currentTime)
             ->pluck('room_id')
             ->unique();
 
-        // Set room yang sedang ada reservasi berjalan → active
-        $activated = Rooms::whereIn('id', $activeRoomIds)
+        // 2. Room aktif karena Reservasi approved (prioritas kedua)
+        $reservationActiveRoomIds = Reservations::where('status', 'approved')
+            ->where('date', $today)
+            ->where('start_time', '<=', $currentTime)
+            ->where('end_time', '>', $currentTime)
+            ->pluck('room_id')
+            ->unique();
+
+        // Gabungkan keduanya — fixed schedule otomatis lebih prioritas
+        // karena reservasi yang bentrok sudah ditolak sejak awal
+        $allActiveRoomIds = $fixedActiveRoomIds->merge($reservationActiveRoomIds)->unique();
+
+        // Set active
+        $activated = Rooms::whereIn('id', $allActiveRoomIds)
             ->where('status', 'inactive')
             ->update(['status' => 'active']);
 
-        // Set room yang tidak ada reservasi berjalan → inactive
-        $deactivated = Rooms::whereNotIn('id', $activeRoomIds)
+        // Set inactive
+        $deactivated = Rooms::whereNotIn('id', $allActiveRoomIds)
             ->where('status', 'active')
             ->update(['status' => 'inactive']);
 

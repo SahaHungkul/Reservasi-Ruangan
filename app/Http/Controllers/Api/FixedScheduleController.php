@@ -16,12 +16,7 @@ use App\Http\Resources\PaginatedResource;
 
 class FixedScheduleController extends Controller
 {
-    protected $fixedScheduleService;
-
-    public function __construct(FixedScheduleService $fixedScheduleService)
-    {
-        $this->fixedScheduleService = $fixedScheduleService;
-    }
+    public function __construct(protected FixedScheduleService $fixedScheduleService) {}
     public function index(Request $request)
     {
         $fixedSchedules = FixedSchedule::search($request->search)->orderBy('id', 'desc')->paginate($request->limit);
@@ -58,54 +53,38 @@ class FixedScheduleController extends Controller
      */
     public function store(StoreFixedScheduleRequest $request)
     {
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-            $validated = $request->validated();
+            $data = $request->validated();
 
-            $room = Rooms::find($validated['room_id']);
+            $room = Rooms::find($data['room_id']);
             if (!$room) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ruangan tidak ditemukan'
-                ], 404);
+                DB::rollBack();
+                return ApiResponse::error('Ruangan tidak ditemukan', 404);
             }
 
-            // Cek konflik dengan jadwal tetap lain di room yang sama
-            $conflict = FixedSchedule::where('room_id', $validated['room_id'])
-                ->where('day_of_week', $validated['day_of_week'])
-                ->where(function ($query) use ($validated) {
-                    $query->where(function ($q) use ($validated) {
-                        $q->where('start_time', '<', $validated['end_time'])
-                            ->where('end_time', '>', $validated['start_time']);
-                    });
-                })
-                ->exists();
-
-            if ($conflict) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jadwal rutin bertabrakan dengan jadwal rutin lain di ruangan yang sama',
-                ], 400);
+            if ($this->fixedScheduleService->checkConflict(
+                $data['room_id'],
+                $data['day_of_week'],
+                $data['start_time'],
+                $data['end_time']
+            )) {
+                DB::rollBack();
+                return ApiResponse::error('Jadwal rutin bertabrakan dengan jadwal rutin lain di ruangan yang sama', 400);
             }
-            $fixedSchedule = FixedSchedule::create($validated);
 
-            if ($fixedSchedule->room) {
-                $fixedSchedule->room->update(['status' => 'active']);
-            }
+            $fixedSchedule = FixedSchedule::create($data);
 
             DB::commit();
-            return response()->json([
-                'status' => true,
-                'data' => new FixedScheduleResource($fixedSchedule->load('room')),
-                'message' => 'Jadwal rutin berhasil dibuat'
-            ], 201);
+            return ApiResponse::success(
+                new FixedScheduleResource($fixedSchedule->load('room')),
+                'Jadwal rutin berhasil dibuat',
+                201
+            );
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal membuat jadwal rutin',
-                'error' => $e->getMessage()
-            ], 500);
+            // \Log::error('Gagal membuat jadwal rutin: ' . $e->getMessage());
+            return ApiResponse::error('Gagal membuat jadwal rutin', 500);
         }
     }
 
